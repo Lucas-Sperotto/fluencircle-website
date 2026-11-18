@@ -1,8 +1,9 @@
 // Verificações estáticas determinísticas, sem rede, Firebase ou dependências npm.
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = resolve(import.meta.dirname, '..');
+const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const publicRoot = join(repoRoot, 'public');
 const entries = readdirSync(publicRoot).filter((file) => file.endsWith('.html'));
 const missing = [];
