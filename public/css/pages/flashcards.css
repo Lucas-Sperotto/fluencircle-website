@@ -1,0 +1,161 @@
+/**
+ * pages/flashcards.css
+ * Modo de estudo: pilha 3D, ações e barra de progresso.
+ */
+
+#flash-cards-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    min-height: 520px;
+    position: relative;
+}
+
+.flash-card-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.cards-action-btn {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    height: 38px;
+    width: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.cards-action-btn:hover {
+    border-color: var(--third-color);
+    color: var(--third-color);
+}
+
+#flash-cards-container {
+    position: relative;
+    width: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 240px;
+    perspective: 1000px;
+    margin: 20px auto;
+}
+
+.card {
+    height: 380px;
+    width: 420px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.card.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    background: #102131;
+    color: var(--text-primary);
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: #0d2836;
+}
+
+.card p {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin: 0 0 12px 0;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+.card span {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.btn-next {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+    background-color: var(--third-color);
+    color: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.removed-card {
+    animation: removeCard 0.4s forwards;
+}
+
+@keyframes removeCard {
+    0% { transform: rotateY(180deg); opacity: 1; }
+    100% { transform: rotate(15deg) translate(80px, -60px); opacity: 0; pointer-events: none; display: none;}
+}
+
+#progress-bar {
+    width: 380px;
+    display: flex;
+    gap: 4px;
+
+    position: relative;
+    justify-content: center;
+
+    bottom: -200px;
+    right: -30px;
+
+}
+
+.progress-item {
+    flex: 1;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-item .fill {
+    background-color: var(--third-color);
+    position: absolute;
+    height: 100%;
+    width: 0%;
+}
+
+.progress-item.check .fill {
+    width: 100%;
+}

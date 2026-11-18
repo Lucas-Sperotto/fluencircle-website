@@ -1,0 +1,72 @@
+/**
+ * components/feedback.css
+ * Avisos (toast) e indicador de carregamento.
+ */
+
+.toast {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+    max-width: 340px;
+}
+
+.toast-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-success {
+    background: #092619;
+    border: 1px solid var(--third-color);
+    color: #ffffff;
+}
+
+.toast-error {
+    background: #2b0e0e;
+    border: 1px solid #ff5252;
+    color: #ffffff;
+}
+
+.toast-info {
+    background: #0c1f30;
+    border: 1px solid var(--accent-blue);
+    color: #ffffff;
+}
+
+.loading-gif {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    z-index: 9999;
+    background-color: rgba(7, 13, 20, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.circle {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--third-color);
+    animation: loading 0.8s infinite ease-in-out;
+}
+
+.one { animation-delay: 0s; }
+.two { animation-delay: 0.15s; }
+.three { animation-delay: 0.3s; }
+
+@keyframes loading {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}

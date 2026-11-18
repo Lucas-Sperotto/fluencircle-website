@@ -1,0 +1,54 @@
+/**
+ * base/base.css
+ * Base: box-sizing, barra de rolagem, html/body, fonte dos campos e a classe .hidden.
+ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* W3C & Webkit Scrollbar */
+* {
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-width: thin;
+}
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--third-color);
+}
+
+html {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    height: 100%;
+}
+
+body {
+    background-color: var(--primary-color);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: 'Montserrat', sans-serif;
+    user-select: none;
+    overflow-x: hidden;
+}
+
+input, select, textarea, button {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.hidden {
+    display: none !important;
+}

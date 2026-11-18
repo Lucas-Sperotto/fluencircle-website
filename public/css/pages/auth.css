@@ -1,0 +1,183 @@
+/**
+ * pages/auth.css
+ * Página de login.
+ */
+
+.auth-body {
+    overflow: auto;
+}
+
+.auth-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--primary-color);
+    z-index: 100;
+}
+
+.auth-layout {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 90px;
+    padding: 100px 40px 50px;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#auth-elements {
+    max-width: 700px;
+    flex: 1;
+    position: relative;
+    bottom: 100px;
+
+    right: px;
+    z-index: 2;
+}
+
+#auth-elements h1 {
+    font-size: clamp(2.1rem, 3.2vw, 4.1rem);
+    font-weight: 300;
+    line-height: 1.25;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+#auth-elements h1 span {
+    color: var(--third-color);
+    font-weight: 700;
+    text-shadow: 0 0 20px rgba(43, 253, 120, 0.3);
+}
+
+#auth-elements p {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 480px;
+}
+
+/* Balão saindo pela diagonal atrás do modal de login */
+.auth-illustration {
+    position: absolute;
+    top: 299px;
+    right: -45px;
+    width: 190px;
+    height: 145px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #179244;
+    border-radius: 26px;
+    border: 1px solid rgba(43, 253, 120, 0.4);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(43, 253, 120, 0.15);
+    transform: rotate(14deg);
+    z-index: 1; /* Fica atrás do modal */
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    margin-top: 0;
+}
+
+.auth-illustration2 {
+    position: absolute;
+    top: 200px;
+    right: -45px;
+    width: 190px;
+    height: 145px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--third-color);
+    border-radius: 26px;
+    border: 1px solid rgba(43, 253, 120, 0.4);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(43, 253, 120, 0.15);
+    transform: rotate(20deg);
+    z-index: 1; /* Fica atrás do modal */
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    margin-top: 0;
+}
+
+.auth-illustration i {
+    font-size: 4.2rem;
+    color: var(--primary-color);
+
+    transform: rotate(-6deg);
+}
+
+.auth-illustration2 i {
+    font-size: 4.2rem;
+    color: var(--primary-color);
+
+    transform: rotate(-6deg);
+}
+
+.auth-modal {
+    width: 100%;
+    max-width: 450px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 22px;
+    padding: 40px 34px;
+    position: relative;
+    bottom: 100px;
+    z-index: 2; /* Fica sobreposto na frente do balão */
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(14px);
+}
+
+.auth-modal h2 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: var(--text-primary);
+}
+
+.auth-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0 0 24px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.auth-form button {
+    height: 48px;
+    background: var(--third-color);
+    color: var(--primary-color);
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-top: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(43, 253, 120, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.auth-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(43, 253, 120, 0.35);
+    opacity: 0.95;
+}
+
+/* Botão "Entrar" enquanto o login é verificado (antes aplicado via style= no JS). */
+.auth-form button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
