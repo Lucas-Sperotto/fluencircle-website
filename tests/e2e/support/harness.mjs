@@ -240,6 +240,7 @@ async function routeRequest(route, origin, network) {
     let body = {};
     try { body = JSON.parse(request.postData() || '{}'); } catch { /* corpo inválido */ }
     network.translations.push(body);
+    if (network.failTranslations) return route.fulfill({ status: 503, body: 'indisponível', headers: cors });
     const word = (/Texto a ser traduzido: ([\s\S]*)$/.exec(body.prompt || '')?.[1] || '').trim();
     return route.fulfill({ status: 200, body: JSON.stringify({ text: DICTIONARY[word.toLowerCase()] || `tradução de ${word}` }), headers: { 'content-type': 'application/json', ...cors } });
   }
@@ -249,11 +250,12 @@ async function routeRequest(route, origin, network) {
 
 /**
  * Cria um contexto de navegador (equivale a um navegador/pessoa diferente).
+ * `failTranslations: true` faz o backend de tradução simulado responder 503.
  * @returns {Promise<{ context: import('playwright').BrowserContext, network: { blocked: string[], missing: string[], translations: object[] } }>}
  */
-export async function newContext(browser, backend, { origin = ORIGINS.local, viewport = { width: 1366, height: 768 } } = {}) {
+export async function newContext(browser, backend, { origin = ORIGINS.local, viewport = { width: 1366, height: 768 }, failTranslations = false } = {}) {
   const context = await browser.newContext({ viewport, locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
-  const network = { blocked: [], missing: [], translations: [], origin };
+  const network = { blocked: [], missing: [], translations: [], origin, failTranslations };
   await context.exposeBinding('__e2eRpc', (source, op, payload) => backend.handle(source.page, op, payload));
   await context.route('**/*', (route) => routeRequest(route, origin, network));
   return { context, network };

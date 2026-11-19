@@ -28,3 +28,8 @@ test('produção não liga Emulator nem mostra selo', () => {
   assert.equal(ENVIRONMENT_SETTINGS.production.badge, null);
   assert.equal(ENVIRONMENT_SETTINGS.production.firebase.projectId, 'fluentech-1e18a');
 });
+
+test('tradutor público: grava direto só em produção (compatibilidade); no Emulator não tenta', () => {
+  assert.equal(ENVIRONMENT_SETTINGS.production.publicTranslatorSavesFlashcards, true);
+  assert.equal(ENVIRONMENT_SETTINGS.emulator.publicTranslatorSavesFlashcards, false);
+});

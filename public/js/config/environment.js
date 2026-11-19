@@ -33,7 +33,14 @@ export function resolveEnvironment(hostname) {
 
 /**
  * Configuração de cada ambiente.
- * `badge` é o texto do selo exibido na tela (null em produção).
+ * - `badge`: texto do selo exibido na tela (null em produção).
+ * - `publicTranslatorSavesFlashcards`: o tradutor público tenta gravar o card
+ *   direto no banco, sem login (comportamento herdado). Em produção fica LIGADO
+ *   só por compatibilidade com as regras ativas, que não conhecemos; as regras
+ *   propostas negam essa escrita e a página trata a negação. No Emulator fica
+ *   DESLIGADO: o caminho correto é o backend controlado (Issues #5 e #8,
+ *   docs/backend/CONTRATO_BACKEND.md). Desligar em produção é decisão humana
+ *   registrada em docs/entrega/CHECKLIST_FINAL.md.
  */
 export const ENVIRONMENT_SETTINGS = Object.freeze({
   [ENVIRONMENTS.PRODUCTION]: Object.freeze({
@@ -41,12 +48,14 @@ export const ENVIRONMENT_SETTINGS = Object.freeze({
     firebase: PRODUCTION_FIREBASE_CONFIG,
     emulators: null,
     badge: null,
+    publicTranslatorSavesFlashcards: true,
   }),
   [ENVIRONMENTS.EMULATOR]: Object.freeze({
     name: ENVIRONMENTS.EMULATOR,
     firebase: EMULATOR_FIREBASE_CONFIG,
     emulators: EMULATOR_HOSTS,
     badge: `Ambiente de teste local — Firebase Emulator (${EMULATOR_PROJECT_ID}). Dados sintéticos; nada aqui chega à produção.`,
+    publicTranslatorSavesFlashcards: false,
   }),
 });
 
