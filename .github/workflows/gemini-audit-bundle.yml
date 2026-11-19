@@ -1,0 +1,50 @@
+name: Gemini - pacote de auditoria reproduzivel
+
+on:
+  push:
+    branches: [chore/gemini-audit-bundle]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout com historico para commit fixo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Coletar evidencia offline do commit da main
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-evidence
+          node --version > audit-evidence/node-version.txt
+          git show -s --format='%H%n%aI%n%s' 469aaecb767bec2d552d05faf7323fd407fb303a > audit-evidence/commit-original.txt
+          git diff --stat dd8a9d8560d6b7fb8d93e7c259cef05f3b799e42..469aaecb767bec2d552d05faf7323fd407fb303a > audit-evidence/diff-upstream.txt
+          git worktree add --detach /tmp/fluencircle-base 469aaecb767bec2d552d05faf7323fd407fb303a
+          cd /tmp/fluencircle-base
+          npm test > "$GITHUB_WORKSPACE/audit-evidence/npm-test.txt" 2>&1
+          node scripts/verify-static.mjs > "$GITHUB_WORKSPACE/audit-evidence/verify-static.txt" 2>&1
+          node scripts/verify-architecture.mjs > "$GITHUB_WORKSPACE/audit-evidence/verify-architecture.txt" 2>&1
+          find public/js tests scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+          echo 'node --check PASS' > "$GITHUB_WORKSPACE/audit-evidence/node-check.txt"
+      - name: Criar snapshot sanitizado com hashes
+        run: |
+          python3 scripts/build-gemini-audit-bundle.py --sha 469aaecb767bec2d552d05faf7323fd407fb303a --evidence audit-evidence --output dist/fluencircle-gemini-audit.zip
+          sha256sum dist/fluencircle-gemini-audit.zip
+      - name: Publicar pacote para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: fluencircle-gemini-audit-469aaecb
+          path: dist/fluencircle-gemini-audit.zip
+          if-no-files-found: error
+          retention-days: 30
