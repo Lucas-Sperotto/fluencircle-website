@@ -1,0 +1,59 @@
+name: "Trabalho com IA"
+description: "Tarefa, auditoria, documentação ou implementação rastreável"
+title: "[IA] "
+body:
+  - type: markdown
+    attributes:
+      value: "Não inclua segredos nem dados pessoais. Anexe evidências sanitizadas e links de PR."
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Tipo"
+      options:
+        - "Refatoração"
+        - "Auditoria"
+        - "Segurança"
+        - "Correção"
+        - "Documentação"
+        - "Teste"
+        - "Decisão arquitetural"
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: "IA assistente principal"
+      options:
+        - "Claude"
+        - "ChatGPT"
+        - "Gemini"
+        - "Outra"
+        - "Sem IA"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Objetivo e contexto"
+      description: "Descreva resultado esperado e base (branch/SHA)."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Critérios de aceite"
+      description: "Inclua testes reproduzíveis e revisão."
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: "Riscos, limitações e rollback"
+      description: "Indique a necessidade de staging/Emulator."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "Evidências e links"
+      description: "Preencher com links de commits/PRs, logs e relatórios conforme o trabalho evoluir."
