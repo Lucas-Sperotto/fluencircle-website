@@ -61,6 +61,9 @@ const isoTimestamp = "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-
 /** E-mail simples (sem espaços, um @). A verificação real é do Firebase Auth. */
 const email = "newData.isString() && newData.val().length <= 254 && newData.val().matches(/^[^@ ]+@[^@ ]+$/)";
 
+/** Id de posse da aba que apresenta (mesmo padrão de domain/presentation-lock.js). */
+const presenterIdFormat = 'newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{16,64}$/)';
+
 /** Recusa qualquer campo não listado no mesmo nível. */
 const noOtherFields = { $other: { '.validate': false } };
 
@@ -158,14 +161,37 @@ export function buildRules() {
       },
 
       // Sessão ativa lida pelo tradutor público (sem login): leitura aberta,
-      // por isso guarda o MÍNIMO (id, título e início; nada de pessoas).
+      // por isso guarda o MÍNIMO (id, título, início e posse; nada de pessoas).
+      //
+      // Posse e concorrência (Issue #9; lógica em public/js/domain/presentation-lock.js):
+      // - `presenterId` identifica a ABA que apresenta; `live/{presenterId}` é a
+      //   presença dela (o onDisconnect de cada aba apaga só a própria chave);
+      // - `version` só cresce de 1 em 1 na troca de dono; a mesma aba grava sem
+      //   mudar versão nem dono (ex.: restaurar a presença ao reconectar);
+      // - trocar o dono de uma apresentação VIVA exige `takeoverOf` = dono atual
+      //   (a pessoa confirmou "assumir"); dono ausente libera a troca;
+      // - nó no formato antigo (sem `version`) pode ser substituído.
+      // Encerrar (apagar) continua permitido a qualquer membro da equipe; o
+      // cliente só apaga se for o dono (risco aceito e testado).
       current_session: {
         '.read': true,
         '.write': isStaff,
-        '.validate': "newData.hasChildren(['sessionId', 'topic'])",
+        '.validate': "newData.hasChildren(['sessionId', 'topic', 'startedAt', 'presenterId', 'version'])"
+          + ' && (!data.exists()'
+          + " || !data.hasChild('version')"
+          + " || (newData.child('presenterId').val() === data.child('presenterId').val() && newData.child('version').val() === data.child('version').val())"
+          + " || (newData.child('version').val() === data.child('version').val() + 1"
+          + " && (data.child('live').child(data.child('presenterId').val()).val() !== true"
+          + " || newData.child('takeoverOf').val() === data.child('presenterId').val())))",
         sessionId: validate("newData.isString() && newData.parent().parent().child('meeting_sessions').child(newData.val()).exists()"),
         topic: validate(text(200, 1)),
         startedAt: validate(isoTimestamp),
+        presenterId: validate(presenterIdFormat),
+        version: validate('newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1'),
+        takeoverOf: validate(presenterIdFormat),
+        live: {
+          $presenterId: validate("newData.val() === true && $presenterId === newData.parent().parent().child('presenterId').val()"),
+        },
         ...noOtherFields,
       },
 

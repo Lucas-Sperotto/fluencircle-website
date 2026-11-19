@@ -3,11 +3,18 @@
  * marcar presença e criar flashcards com o tradutor.
  *
  * Restrito a mediadores e administradores. Fluxo:
- *   seleção do tema → "Iniciar" (cria a sessão e a publica para o tradutor público)
- *   → slides em tela cheia → "Encerrar" (despublica e volta à seleção).
+ *   seleção do tema → "Iniciar" (pergunta antes de assumir o tradutor se outra
+ *   tela estiver no ar; cria a sessão e a publica com posse desta aba)
+ *   → slides em tela cheia → "Encerrar" (despublica só se esta aba for a dona).
+ *
+ * Posse da sessão ativa (Issue #9): ver domain/presentation-lock.js. Se outra
+ * tela assumir o tradutor, esta continua registrando presença e cards na
+ * PRÓPRIA sessão e mostra o aviso na barra de status.
  */
 import { initProtectedPage } from '../shared/page-setup.js';
-import { createSession, publishCurrentSession } from '../../services/sessions.service.js';
+import { createSession, publishCurrentSession, getCurrentSession, createPresenterId, deleteSession } from '../../services/sessions.service.js';
+import { isPresentationLive } from '../../domain/presentation-lock.js';
+import { nowIso, formatDateTime } from '../../domain/format.js';
 import { STAFF_ROLES } from '../../core/roles.js';
 import { byId } from '../../ui/dom.js';
 import { showToast } from '../../ui/toast.js';
@@ -21,18 +28,59 @@ import { createTranslatorModal } from './translator-modal.js';
 const selectView = document.querySelector('.select-content');
 const slideView = document.querySelector('.slide-content');
 const startButton = byId('start-presentation-btn');
+const statusLabel = byId('presentation-status');
 const floatingButtons = [byId('open-translator-btn'), byId('open-attendance-btn')];
 
 /** Estado da tela. */
 const state = {
   /** @type {import('./theme-picker.js').SelectedTheme | null} */
   selectedTheme: null,
-  /** @type {{ id: string, topic: string } | null} sessão em andamento */
+  /** @type {{ id: string, topic: string, startedAt: string } | null} sessão em andamento */
   activeSession: null,
-  /** @type {(() => Promise<void>) | null} encerra a publicação em current_session */
-  unpublish: null,
+  /** @type {import('../../services/sessions.service.js').PresentationHandle | null} publicação no tradutor */
+  presentation: null,
+  /** Identifica esta aba como dona da publicação (um por carregamento de página). */
+  presenterId: createPresenterId(),
   mediatorEmail: '',
 };
+
+/** Texto da barra de status para cada situação da publicação. */
+const STATUS_MESSAGES = Object.freeze({
+  live: { text: 'Publicada no tradutor público.', tone: 'ok' },
+  reconnecting: { text: 'Sem conexão: o tradutor público não mostra esta sessão até a rede voltar.', tone: 'warning' },
+  offline: { text: 'Reconectando a sessão ao tradutor público...', tone: 'warning' },
+  'taken-over': { text: 'Outra tela assumiu o tradutor público. Presença e cards continuam salvos nesta sessão.', tone: 'error' },
+  ended: { text: 'A publicação no tradutor foi encerrada em outra tela. Presença e cards continuam salvos nesta sessão.', tone: 'error' },
+});
+
+function renderPresentationStatus(status) {
+  const message = STATUS_MESSAGES[status];
+  statusLabel.textContent = message ? message.text : '';
+  statusLabel.dataset.tone = message ? message.tone : '';
+}
+
+function handlePresentationStatus(status) {
+  renderPresentationStatus(status);
+  if (status === 'taken-over') showToast('Outra tela assumiu a sessão ativa do tradutor.', 'error');
+}
+
+/**
+ * Se outra tela estiver no ar no tradutor, pergunta antes de assumir.
+ * @returns {Promise<boolean|null>} `takeover` para a publicação, ou null se a pessoa cancelou
+ */
+async function askTakeoverIfNeeded() {
+  const current = await getCurrentSession();
+  if (!isPresentationLive(current) || current.presenterId === state.presenterId) return false;
+  const since = current.startedAt ? ` desde ${formatDateTime(current.startedAt)}` : '';
+  const confirmed = await confirmDialog({
+    title: 'Já existe uma sessão no tradutor',
+    message: `"${current.topic || 'Sessão sem tema'}" está sendo apresentada${since} em outra tela.`,
+    detail: 'O tradutor público mostra uma sessão por vez. Ao assumir, as traduções passam para esta nova sessão e a outra tela é avisada.',
+    confirmText: 'Assumir o tradutor',
+    cancelText: 'Cancelar',
+  });
+  return confirmed ? true : null;
+}
 
 // Evita clique repetido enquanto uma operação assíncrona está em andamento.
 let isStarting = false;
@@ -72,10 +120,25 @@ async function startSession() {
   setStartEnabled(false);
   startButton.textContent = 'Iniciando...';
   try {
-    const sessionId = await createSession({ templateId, topic, mediatorEmail: state.mediatorEmail || 'mediador' });
-    const unpublish = await publishCurrentSession({ sessionId, topic });
-    state.activeSession = { id: sessionId, topic };
-    state.unpublish = unpublish;
+    const takeover = await askTakeoverIfNeeded();
+    if (takeover === null) return;
+
+    const startedAt = nowIso();
+    const sessionId = await createSession({ templateId, topic, mediatorEmail: state.mediatorEmail, startedAt });
+    const result = await publishCurrentSession({ sessionId, topic, startedAt }, {
+      presenterId: state.presenterId,
+      takeover,
+      onStatusChange: handlePresentationStatus,
+    });
+    if (result.status === 'conflict') {
+      // Outra tela entrou no ar entre a pergunta e a publicação: descarta a sessão recém-criada.
+      await deleteSession(sessionId).catch((error) => console.error('Não foi possível descartar a sessão criada:', error));
+      showToast('Outra sessão entrou no tradutor enquanto você iniciava. Tente novamente.', 'error');
+      return;
+    }
+    state.activeSession = { id: sessionId, topic, startedAt };
+    state.presentation = result.presentation;
+    renderPresentationStatus('live');
 
     attendance.reset();
     showSessionUI(true);
@@ -107,15 +170,19 @@ async function endSession() {
 
     // Erro de despublicação não é sucesso. Preservamos a sessão na tela
     // para que o mediador possa tentar novamente sem deixar um evento órfão.
-    if (!state.unpublish) throw new Error('Função de despublicação indisponível.');
-    await state.unpublish();
+    if (!state.presentation) throw new Error('Publicação indisponível.');
+    const outcome = await state.presentation.stop();
     state.activeSession = null;
-    state.unpublish = null;
+    state.presentation = null;
+    renderPresentationStatus(null);
 
     attendance.close();
     translator.close();
     showSessionUI(false);
-    showToast('Sessão encerrada', 'success');
+    // Se outra tela já tinha assumido, o nó dela fica intacto (só a dona remove).
+    showToast(outcome === 'not-owner'
+      ? 'Sessão encerrada nesta tela. O tradutor público segue com a outra apresentação.'
+      : 'Sessão encerrada', 'success');
   } catch (error) {
     console.error('Não foi possível retirar a sessão ativa do banco:', error);
     showToast('Falha ao encerrar no banco. Confira a conexão e tente novamente.', 'error');

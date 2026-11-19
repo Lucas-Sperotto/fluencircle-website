@@ -161,7 +161,9 @@ describe(`${env.label} RBAC e esquema — regras propostas`, () => {
   });
 
   describe('current_session (lida pelo tradutor público)', () => {
-    const live = { sessionId: SESSIONS.both, topic: 'Travel', startedAt: NOW };
+    // Formato com posse (Issue #9); os casos de concorrência estão em sessao-ativa.rules.test.mjs.
+    const presenterId = 'aba-mediador-b-000001';
+    const live = { sessionId: SESSIONS.both, topic: 'Travel', startedAt: NOW, presenterId, version: 1, live: { [presenterId]: true } };
     test('visitante lê, mas não publica nem apaga', async () => {
       await env.seed({ ...buildSyntheticDatabase(), current_session: live });
       await env.allowed(env.as(null).get('current_session'));
@@ -180,7 +182,8 @@ describe(`${env.label} RBAC e esquema — regras propostas`, () => {
 
   describe('flashcards', () => {
     test('VISITANTE NÃO CRIA FLASHCARD DIRETO NO BANCO (Issue #5)', async () => {
-      await env.seed({ ...buildSyntheticDatabase(), current_session: { sessionId: SESSIONS.both, topic: 'Travel', startedAt: NOW } });
+      const presenterId = 'aba-mediador-b-000001';
+      await env.seed({ ...buildSyntheticDatabase(), current_session: { sessionId: SESSIONS.both, topic: 'Travel', startedAt: NOW, presenterId, version: 1, live: { [presenterId]: true } } });
       await env.denied(env.as(null).set(`flashcards/${SESSIONS.both}/card-anonimo`, validCard(SESSIONS.both)));
     });
     test('aluno não cria, edita nem apaga cards', async () => {
