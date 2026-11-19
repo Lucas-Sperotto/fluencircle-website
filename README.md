@@ -112,7 +112,8 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 - [`docs/operacao/DEPENDENCIAS.md`](docs/operacao/DEPENDENCIAS.md) — dependências, versões e licenças
 
 **Auditoria e processo (histórico):**
-- [`docs/auditorias/CLAUDE_HANDOFF_FINAL.md`](docs/auditorias/CLAUDE_HANDOFF_FINAL.md) — entrega desta etapa para revisão do ChatGPT
+- [`docs/auditorias/CLAUDE_HANDOFF_FINAL.md`](docs/auditorias/CLAUDE_HANDOFF_FINAL.md) — entrega **histórica** de Claude, anterior aos merges e reexecuções da CI
+- [`docs/auditorias/CHATGPT_ACEITE_ACADEMICO_2026-11-19.md`](docs/auditorias/CHATGPT_ACEITE_ACADEMICO_2026-11-19.md) — resultado independente após os PRs #29–#34 e dependências travadas
 - [`docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md`](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md), [`GEMINI_AUDITORIA.md`](docs/auditorias/GEMINI_AUDITORIA.md), [`CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md`](docs/auditorias/CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md)
 - [`docs/AUDITORIA.md`](docs/AUDITORIA.md) e [`docs/MIGRACAO.md`](docs/MIGRACAO.md) — registro histórico da reorganização Claude
 - [`docs/processo/CHANGELOG_IA.md`](docs/processo/CHANGELOG_IA.md) e [`RASTREABILIDADE_IA.md`](docs/processo/RASTREABILIDADE_IA.md) — atribuição e processo

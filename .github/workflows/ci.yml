@@ -61,9 +61,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/firebase/emulators
-          key: firebase-emulators-${{ runner.os }}-${{ hashFiles('package.json') }}
-      - name: Dependências de teste (sem package-lock ainda; ver docs/entrega/LIMITACOES_E_PENDENCIAS.md)
-        run: npm install --no-audit --no-fund
+          key: firebase-emulators-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Dependências reproduzíveis a partir de package-lock.json (npm ci)
+        run: npm ci --no-audit --no-fund
       - name: Versões
         run: |
           node --version
@@ -86,7 +86,7 @@ jobs:
         with:
           node-version: '22'
       - name: Dependências de teste
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Chromium do Playwright
         run: npx playwright install --with-deps chromium
       - name: E2E (rede bloqueada; banco simulado aplica as regras propostas)

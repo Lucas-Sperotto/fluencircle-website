@@ -1,7 +1,7 @@
 # Limitações e pendências
 
 Separação obrigatória: o que foi **testado localmente** (com Firebase simulado ou simulador de regras), o que falta
-para **produção** e o que é **melhoria futura**. Atualizado em 19/11/2026.
+para **produção** e o que é **melhoria futura**. Redigido originalmente por Claude em 19/11/2026. **Nota de auditoria posterior (ChatGPT, 19/11/2026):** o bloqueio de GitHub e a ausência de testes oficiais na sessão Claude foram superados após a importação: PRs #29–#34 estão na main, o Firebase Emulator oficial aprovou 65/65 e o Playwright simulado 44/44 em CI (#44537468469). Este documento preserva abaixo o contexto histórico de Claude; veja `docs/entrega/CHECKLIST_FINAL.md` e `docs/auditorias/CHATGPT_ACEITE_ACADEMICO_2026-11-19.md` para o estado atual. **O backend de produção continua não auditado e o deploy segue NO-GO.**
 
 ## 1. Bloqueios desta entrega
 
@@ -24,7 +24,7 @@ para **produção** e o que é **melhoria futura**. Atualizado em 19/11/2026.
 | Privacidade e escala | leitura pelo índice; presença sem PII; medição sintética | **migrar dados antigos** (plano offline) em staging e produção; política LGPD | diretório de nomes para mediadores (sem e-mail) |
 | Contas | desfazer conta se o perfil falhar | backend com Admin SDK; desligar cadastro público | custom claims de papel |
 | SRS | etapa +1 e carimbo obrigatório nas regras; cliente rejeita dados inválidos | — | timestamps numéricos (`now`) para validar prazos nas regras |
-| CI | jobs separados sem deploy; offline e E2E executados localmente | ver os três jobs verdes no GitHub; gerar `package-lock.json` e usar `npm ci` | cache de dependências; relatório de cobertura |
+| CI | jobs separados sem deploy; offline, Emulator e E2E foram reproduzidos pela auditoria GitHub posterior | `package-lock.json` e `npm ci` adicionados em PR subsequente; monitorar dependências e commits de lock | cache de dependências; relatório de cobertura |
 | E2E | 44 casos com Firebase simulado | E2E contra Emulator com o SDK real e contra staging | axe-core, contraste, leitor de tela |
 
 ## 3. Limitações conhecidas do comportamento atual
