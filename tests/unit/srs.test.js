@@ -57,13 +57,39 @@ test('etapa 2: prazo em "dia(s)" e mensagem de revisão final', () => {
   assert.equal(due.progressPercent, 66);
 });
 
-test('etapa 3 (ou valor inválido) conta como concluída', () => {
-  for (const stage of [FINAL_STAGE, 4, -1, 1.5, '1']) {
-    const status = calculateSRSStatus(session, { stage }, start);
-    assert.equal(status.targetStageName, 'Concluído', `stage=${JSON.stringify(stage)}`);
-    assert.equal(status.progressPercent, 100);
-    assert.equal(status.isDue, false);
+test('somente etapa 3 válida indica conclusão', () => {
+  const status = calculateSRSStatus(session, { stage: FINAL_STAGE }, start);
+  assert.equal(status.targetStageName, 'Concluído');
+  assert.equal(status.progressPercent, 100);
+  assert.equal(status.isDue, false);
+});
+
+test('etapas malformadas ou adulteradas não recebem conclusão e não avançam', () => {
+  for (const stage of [4, -1, 1.5, '1', NaN, true]) {
+    const status = calculateSRSStatus(session, { stage }, start + 90 * DAY_MS);
+    assert.equal(status.progressPercent, 0, `stage=${JSON.stringify(stage)}`);
+    assert.equal(status.invalidState, true);
+    assert.equal(canAdvanceStage(status), false);
   }
+});
+
+test('datas inválidas bloqueiam avanço sem produzir NaN na interface', () => {
+  for (const bad of ['', 'não é data', null]) {
+    const status = calculateSRSStatus({ startedAt: bad }, undefined, start + DAY_MS);
+    assert.equal(status.invalidState, true);
+    assert.equal(status.isDue, false);
+    assert.equal(status.timeRemainingText, 'Data de revisão inválida');
+  }
+  const status = calculateSRSStatus(session, { stage: 1, stage1CompletedAt: 'inválido' }, start + 30 * DAY_MS);
+  assert.equal(status.invalidState, true);
+  assert.equal(canAdvanceStage(status), false);
+});
+
+test('buildStageCompletion rejeita etapas e datas inválidas', () => {
+  for (const stage of [-1, 3, 4, 1.5, '1']) {
+    assert.throws(() => buildStageCompletion(stage, '2026-11-19T10:00:00Z'), RangeError);
+  }
+  assert.throws(() => buildStageCompletion(0, 'invalida'), TypeError);
 });
 
 test('canAdvanceStage só libera etapa vencida e não final', () => {

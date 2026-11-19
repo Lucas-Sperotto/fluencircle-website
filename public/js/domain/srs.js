@@ -75,9 +75,21 @@ export const STAGE_COMPLETION_MESSAGES = Object.freeze({
  * @returns {SrsStatus}
  */
 export function calculateSRSStatus(session, reviewData, now = Date.now()) {
-  const stage = reviewData?.stage || 0;
-  // Só números inteiros indicam etapa pendente; qualquer outro valor conta como concluído.
-  const config = Number.isInteger(stage) ? STAGES[stage] : undefined;
+  const rawStage = reviewData?.stage ?? 0;
+  // Apenas FINAL_STAGE indica conclusão; dados inválidos não recebem 100%.
+  // Erros no banco devem ficar visíveis e jamais permitir avançar etapas.
+  if (!Number.isInteger(rawStage) || rawStage < 0 || rawStage > FINAL_STAGE) {
+    return {
+      stage: 0,
+      invalidState: true,
+      targetStageName: 'Progresso inválido',
+      isDue: false,
+      timeRemainingText: 'Dados de revisão inválidos',
+      progressPercent: 0,
+    };
+  }
+  const stage = rawStage;
+  const config = STAGES[stage];
 
   if (!config) {
     return {
@@ -89,9 +101,22 @@ export function calculateSRSStatus(session, reviewData, now = Date.now()) {
     };
   }
 
-  const sessionTime = new Date(session.startedAt || 0).getTime();
+  // Para registros legados sem timestamp de etapa, mantém o fallback para
+  // startedAt. Datas inválidas, ao contrário, bloqueiam qualquer avanço.
   const startValue = config.startField ? reviewData?.[config.startField] : null;
-  const startTime = startValue ? new Date(startValue).getTime() : sessionTime;
+  const timestamp = startValue || session?.startedAt;
+  const startTime = typeof timestamp === 'string' && timestamp.trim()
+    ? Date.parse(timestamp) : Number.NaN;
+  if (!Number.isFinite(startTime) || !Number.isFinite(now)) {
+    return {
+      stage,
+      invalidState: true,
+      targetStageName: config.name,
+      isDue: false,
+      timeRemainingText: 'Data de revisão inválida',
+      progressPercent: config.progress,
+    };
+  }
   const elapsed = now - startTime;
   const isDue = elapsed >= config.waitMs;
 
@@ -109,7 +134,8 @@ export function calculateSRSStatus(session, reviewData, now = Date.now()) {
  * @param {SrsStatus} srs
  */
 export function canAdvanceStage(srs) {
-  return srs.isDue && srs.stage < FINAL_STAGE;
+  return srs?.isDue === true && !srs.invalidState && Number.isInteger(srs.stage)
+    && srs.stage >= 0 && srs.stage < FINAL_STAGE;
 }
 
 /**
@@ -118,6 +144,12 @@ export function canAdvanceStage(srs) {
  * @param {string} nowIso data atual em ISO 8601
  */
 export function buildStageCompletion(currentStage, nowIso) {
+  if (!Number.isInteger(currentStage) || currentStage < 0 || currentStage >= FINAL_STAGE) {
+    throw new RangeError('Etapa atual inválida para avanço no SRS.');
+  }
+  if (typeof nowIso !== 'string' || !Number.isFinite(Date.parse(nowIso))) {
+    throw new TypeError('Data de conclusão do SRS inválida.');
+  }
   const nextStage = currentStage + 1;
   return {
     stage: nextStage,
