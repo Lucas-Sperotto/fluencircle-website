@@ -1,0 +1,86 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+        ".validate": "newData.hasChildren(['email', 'role'])",
+        "firstName": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "lastName": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "email": { ".validate": "newData.isString() && newData.val().length <= 254" },
+        "role": { ".validate": "newData.val() === 'student' || newData.val() === 'mediator' || newData.val() === 'admin'" },
+        "createdAt": { ".validate": "newData.isString()" },
+        "updatedAt": { ".validate": "newData.isString()" },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "deleted_users": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+      }
+    },
+
+    "meetings": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      "$themeId": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".validate": "newData.hasChildren(['topic', 'questions'])",
+        "topic": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200" }
+      }
+    },
+
+    "meeting_sessions": {
+      ".read": "auth != null && root.child('users').child(auth.uid).exists()",
+      "$sessionId": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+
+    "current_session": {
+      ".read": true,
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      ".validate": "newData.hasChildren(['sessionId', 'topic'])"
+    },
+
+    "flashcards": {
+      ".read": "auth != null && root.child('users').child(auth.uid).exists()",
+      "$sessionId": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$cardId": {
+          ".write": "!data.exists() && newData.exists() && $sessionId === root.child('current_session').child('sessionId').val()",
+          ".validate": "newData.hasChildren(['front', 'back'])",
+          "front": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
+          "back": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
+          "topic": { ".validate": "newData.isString() && newData.val().length <= 200" },
+          "sessionId": { ".validate": "newData.val() === $sessionId" },
+          "createdAt": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    "student_reviews": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && root.child('users').child(auth.uid).exists()",
+        "$sessionId": {
+          "stage": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3" }
+        }
+      }
+    },
+
+    "user_sessions": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    }
+  }
+}

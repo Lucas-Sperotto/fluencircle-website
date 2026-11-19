@@ -1,0 +1,520 @@
+/**
+ * responsive/mobile.css
+ * Ajustes para telas até 768 px. Vem depois de tudo: sobrescreve as regras de desktop.
+ */
+
+@media (max-width: 768px) {
+    /* 1. Tipografia e Limites Globais */
+    html {
+        font-size: 14px;
+    }
+
+    body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    /* 2. Cabeçalho Superior Fixo */
+    header {
+        left: 0;
+        right: 0;
+        height: 56px;
+        padding: 0 14px;
+        justify-content: space-between;
+    }
+
+    .header-actions .user-email {
+        display: none; /* Oculta e-mail longo para não espremer o topo */
+    }
+
+    .user-role-badge {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+
+    .logout-btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .logout-btn span {
+        display: none; /* Mantém apenas o ícone no mobile */
+    }
+
+    /* 3. Área Principal (Main) - Compensação de Topo e Rodapé */
+    main {
+        padding: 70px 14px 80px 14px !important;
+        width: 100%;
+        min-height: 100vh;
+        box-sizing: border-box;
+        align-items: center;
+    }
+
+    .home-page-options{
+        margin-top: 40px;
+    display: grid;
+    row-gap: 10px;
+    grid-template-columns: 1fr;
+    column-gap: 30px;
+}
+
+    /* 4. Barra de Navegação Inferior (Estilo App Nativo) */
+    .sidebar,
+    .sidebar.retratil,
+    .sidebar:hover {
+        position: fixed!important;
+        height: 60px !important;
+        width: 100vw !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        bottom: 0 !important;
+        border-right: none;
+        border-top: 1px solid var(--border-color);
+        background-color: var(--surface-card);
+        flex-direction: row;
+
+    }
+
+    .sidebar{
+        background-color: var(--primary-color)!important;
+    }
+
+    .sidebar-nav {
+        margin-top: 0;
+        height: 100%;
+        width: 100%;
+        flex-direction: row;
+        padding: 0 4px;
+        justify-content: space-around;
+        align-items: center;
+    }
+
+    .sidebar-menu-top,
+    .sidebar-menu-bottom {
+        flex-direction: row;
+        height: 100%;
+        gap: 0;
+        width: 45%;
+        justify-content: space-around;
+        align-items: center;
+    }
+
+    .sidebar-menu-top{
+                flex-direction: row;
+        height: 100%;
+        gap: 0;
+        width: 85%;
+        justify-content: space-around;
+        align-items: center;
+    }
+
+    .sidebar-divider {
+        display: none!important; /* Remove separador vertical no modo horizontal */
+    }
+
+    .sidebar-nav li {
+        height: 100%;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0;
+
+    }
+
+    .sidebar-nav li.active {
+        background: transparent !important;
+        border-top: 3px solid var(--third-color);
+
+
+
+    }
+
+    #themes-grid{
+        grid-template-columns: 1fr!important;
+    }
+
+    .sidebar-nav li a {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 3px;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .sidebar-nav li a i {
+        font-size: 1.15rem;
+        min-width: auto;
+        margin: 0;
+        color: white!important;
+    }
+
+    /* Exibe sempre o texto do menu no mobile com tamanho reduzido */
+    .sidebar-nav li a span,
+    .sidebar:not(.retratil) .sidebar-nav li a span,
+    .sidebar:hover .sidebar-nav li a span {
+        display: none;
+    }
+
+    /* 5. Página de Apresentação e Seleção de Reunião */
+    #slide-show-page {
+        width: 100%;
+        padding: 0 4px;
+    }
+
+    .select-content {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #presentation-select {
+        width: 100%;
+        max-width: 92vw;
+        height: 48px; /* Área de toque confortável */
+        padding: 0 16px;
+    }
+
+    #option-list {
+        width: 92vw !important;
+        max-width: 92vw !important;
+        left: 4vw !important; /* Centralização automática em telas estreitas */
+    }
+
+    .meeting-option {
+        padding: 12px 16px; /* Alvo de toque >= 44px */
+        font-size: 0.85rem;
+    }
+
+    #start-presentation-btn {
+        width: 100%;
+        max-width: 92vw;
+        height: 46px;
+    }
+
+
+
+
+
+
+    /* 6. Flashcards e Prática */
+    #flash-cards-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+
+        flex-direction: column !important;
+        align-items: center !important;
+        position: relative !important;
+        gap: 0 !important;
+    }
+
+    /* 2. CORREÇÃO CRÍTICA DO BOTÃO VOLTAR (Remove o fixed de 100px) */
+    .back-button,
+    #back-to-meetings-btn {
+        position: static !important; /* Volta para o fluxo normal do topo */
+        top: auto !important;
+        left: auto !important;
+        margin: 0 0 12px 0 !important;
+        align-self: center !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-secondary) !important;
+        padding: 6px 16px !important;
+        font-size: 0.8rem !important;
+        border-radius: 50px !important;
+        z-index: 10 !important;
+    }
+
+    /* 3. Cabeçalho da Sessão (Tema e Instrução) */
+    #flash-cards-content .page-header {
+        margin-bottom: 10px !important;
+        text-align: center !important;
+    }
+
+    #current-meeting-title {
+        font-size: 1.7rem !important;
+        font-weight: 700 !important;
+        margin: 0 0 6px 0 !important;
+        color: #ffffff !important;
+    }
+
+    #study-instruction-text {
+        font-size: 0.85rem !important;
+        color: var(--text-secondary) !important;
+        margin: 0 !important;
+    }
+
+    /* 4. Ações de Reiniciar e Voltar Cartão */
+    .flash-cards-study-content {
+        width: 100% !important;
+        display: flex!important;
+        justify-content: center !important;
+        margin: 10px 0 !important;
+    }
+
+    .flash-card-actions {
+        display: flex !important;
+        gap: 16px !important;
+        margin-bottom: 0 !important;
+        justify-content: center !important;
+    }
+
+    .cards-action-btn {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 1rem !important;
+        border-radius: 50% !important;
+        background-color: var(--surface-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    .card {
+        position: absolute !important;
+        top: 7% !important;
+        left: 20% !important;
+        width: 60% !important; /* Ocupa 100% dos 350px max */
+        height: 95% !important;
+        border-radius: 20px !important;
+        border: none;
+    }
+
+    .card-front, .card-back {
+        border-radius: 20px !important;
+        padding: 24px 18px !important;
+    }
+
+    .card p {
+        font-size: 0.72rem !important;
+        margin-bottom: 18px !important;
+    }
+
+    .card span {
+        font-size: 1.35rem !important;
+        line-height: 1.4 !important;
+        font-weight: 600 !important;
+        word-break: break-word !important;
+    }
+
+    /* 6. CORREÇÃO CRÍTICA DO PROGRESS-BAR (Zera o bottom: -200px e right: -30px) */
+    #progress-bar {
+        position: static !important; /* Fica logo abaixo do card naturalmente */
+        bottom: auto !important;
+        right: auto !important;
+        width: calc(100vw - 36px) !important;
+        max-width: 200px !important;
+        margin: 50px auto 0 auto !important;
+        gap: 6px !important;
+        justify-content: center !important;
+    }
+
+    .progress-item {
+        height: 6px !important;
+        border-radius: 6px !important;
+    }
+
+    /* 7. Grids e Listagens (Aulas / Reuniões) */
+    .classes-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        width: 100%;
+    }
+
+    /* 8. Tabelas e Painéis Administrativos */
+
+
+    table {
+        min-width: 550px; /* Garante rolagem horizontal sem esmagar colunas */
+    }
+
+    /* 9. Modais e Caixas de Diálogo */
+    .modal-container {
+        padding: 14px;
+        align-items: flex-end; /* Abre tipo bottom-sheet em telas pequenas */
+    }
+
+    .modal {
+        max-width: 100%;
+        top: 100px;
+        transform: scale(.85);
+        position: absolute;
+        width: 100%;
+        border-radius: 20px 20px 10px 10px;
+        padding: 22px 18px;
+    }
+
+    .flexbox {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+
+    #manage-meetings-page{
+        display: none;
+    }
+
+    .flexbox button,
+    .modal-content button {
+        width: 100%;
+        height: 44px;
+    }
+
+    /* 10. Gaveta Lateral de Presença (Attendance Drawer) */
+    .attendance-drawer {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        right: 0;
+        top: 0;
+        bottom: 60px; /* Fica acima da barra inferior de navegação */
+        height: calc(100vh - 60px);
+    }
+
+
+
+
+
+
+
+
+
+
+
+    /* 3. Modal de Login - Cria espaço superior real para os balões */
+    .auth-modal {
+        position: relative !important;
+        bottom: auto !important;
+        width: 100% !important;
+        max-width: 390px !important;
+        margin-bottom: 120px;
+        padding: 34px 22px 28px 22px !important;
+        z-index: 10 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 4. Balão 1 (Verde Escuro - Base de trás) */
+    .auth-layout {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 24px !important;
+        padding: 85px 16px 40px 16px !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 2. Zera deslocamentos manuais de desktop no texto */
+    #auth-elements {
+        position: static !important;
+        bottom: auto !important;
+        right: auto !important;
+        max-width: 100% !important;
+        text-align: center !important;
+        margin-bottom: 35px !important; /* Espaço para respirar antes dos balões */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    #auth-elements h1 {
+        font-size: 1.85rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 10px !important;
+    }
+
+    #auth-elements p {
+        font-size: 0.92rem !important;
+        line-height: 1.5 !important;
+        max-width: 90% !important;
+    }
+
+    /* 3. Modal de Login - Cria espaço superior real para os balões */
+    .auth-modal {
+        position: relative !important;
+        bottom: auto !important;
+        width: 100% !important;
+        max-width: 390px !important;
+        margin-top: 55px !important; /* CRUCIAL: Abre espaço exato para os balões sem empurrar o formulário */
+        padding: 34px 22px 28px 22px !important;
+        z-index: 10 !important;
+        box-sizing: border-box !important;
+    }
+
+
+
+    /* 5. Balão 2 (Verde Claro - Sobreposto à frente) */
+    .auth-illustration2 {
+        position: absolute !important;
+        top: 250px !important;
+        left: calc(50%-1px) !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 96px !important;
+        height: 72px !important;
+
+    }
+    .auth-illustration {
+        position: absolute !important;
+        top: 269px !important;
+        left: calc(50%-20px) !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 96px !important;
+        height: 72px !important;
+
+    }
+
+    /* 6. Ícones proporcionais dentro dos balões */
+    .auth-illustration i,
+    .auth-illustration2 i {
+        font-size: 2.1rem !important;
+        transform: rotate(0deg) !important;
+    }
+
+
+
+
+
+
+
+    /* 7. Ajuste interno do formulário para toque mobile */
+    .auth-modal h2 {
+        font-size: 1.5rem !important;
+    }
+
+    .auth-form .form-item input {
+        height: 46px !important;
+        font-size: 16px !important; /* Evita que o iOS dê zoom automático ao focar */
+    }
+
+    .auth-form button {
+        height: 46px !important;
+        font-size: 1rem !important;
+    }
+
+
+
+    .hide-on-mobile{
+    display: none !important;
+}
+
+.not-available-message{
+    position: absolute;
+    top: 300px;
+    flex-direction: column;
+    display: flex;
+    width: 60%;
+    justify-content: center;
+    align-items: center;
+    left: 21%;
+}
+
+.not-available-message p{
+    text-align: center;
+    opacity: .7;
+}
+
+}

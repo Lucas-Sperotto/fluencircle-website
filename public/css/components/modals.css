@@ -1,0 +1,128 @@
+/**
+ * components/modals.css
+ * Modais, campos de formulário e .flexbox.
+ */
+
+.modal-container {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background-color: rgba(7, 13, 20, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal {
+    background-color: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    position: relative;
+    max-width: 500px;
+    width: 100%;
+    padding: 26px;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+}
+
+.modal-content h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.modal-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.modal-sub-info {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.close-translation-btn,
+.close-end-meeting-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.close-translation-btn:hover,
+.close-end-meeting-btn:hover {
+    color: #ff5252;
+}
+
+.form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: left;
+}
+
+.form-item label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+
+}
+
+.form-item input,
+.modal input {
+    height: 40px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    padding: 0 12px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.form-item input:focus,
+.modal input:focus {
+    transition: .3s ease;
+    border-color: rgb(140, 137, 150);
+}
+
+.flexbox {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Translator modal inputs */
+.translation-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#translation-content{
+    gap: 30px;
+}
+
+.translation-container input {
+    height: 48px;
+    font-size: 0.95rem;
+}
+
+#translated-text {
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--third-color);
+    pointer-events: none;
+}

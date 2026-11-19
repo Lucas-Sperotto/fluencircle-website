@@ -1,0 +1,13 @@
+{
+  "name": "fluencircle-website",
+  "private": true,
+  "description": "Site do FluenCircle: sessões de conversação e flashcards com revisão espaçada (HTML, CSS e JavaScript sem build).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/unit/*.test.js",
+    "serve": "python3 -m http.server 5501 --directory public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

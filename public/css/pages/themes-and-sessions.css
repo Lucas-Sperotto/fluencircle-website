@@ -1,0 +1,325 @@
+/**
+ * pages/themes-and-sessions.css
+ * Temas (set-meeting) e Sessões (manage-meetings).
+ */
+
+.manage-theme-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 10px 18px;
+    display: flex;
+    cursor: pointer;
+
+    gap: 12px;
+    transition: all 0.25s ease;
+}
+
+.manage-meeting-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.25s ease;
+}
+
+.delete-session-btn{
+    background-color: rgba(255, 0, 0, 0.363);
+    left: 300px;
+}
+
+.manage-meeting-card:hover {
+
+    border-color: var(--border-hover);
+}
+
+.manage-meeting-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meeting-badge {
+    background-color: var(--third-color);
+    color: var(--primary-color);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.manage-meeting-topic {
+    font-size: 0.95rem;
+
+    color: var(--text-primary);
+}
+
+.manage-meeting-info {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Theme Editor Form */
+.theme-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.theme-container label {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.theme-container input {
+    height: 42px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    padding: 0 14px;
+    outline: none;
+}
+
+.theme-container input:focus {
+    border-color: var(--third-color);
+}
+
+.questions-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.questionItem{
+    display: flex;
+    width: 100%;
+
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+.questionItem .number{
+    background-color: var(--third-color);
+    width: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    height: 50px;
+    font-size: 2rem!important;
+    border-radius: 50%;
+}
+
+.cursor-left{
+    cursor: url(../../assets/cursor-left.png), auto;
+}
+.cursor-right{
+    cursor: url(../../assets/cursor-right.png), auto;
+}
+
+.slide{
+    width: 100%;
+}
+
+.slide-content{
+    width: 90vw!important;
+
+}
+
+.questionItem .question{
+    font-weight: 400!important;
+    font-size: 2rem!important;
+}
+
+#add-question-button {
+    background-color: var(--second-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px;
+    font-size: 0.78rem;
+    height: 40px;
+    width: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#add-question-button:hover {
+    background-color: #eb4f4f;
+}
+
+.questions-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.question-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 100%;
+}
+
+.question-card .questionNumber {
+    background-color: var(--third-color);
+    color: var(--primary-color);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.question-card input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.question-card button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 4px;
+}
+
+.question-card button:hover {
+    color: #ff5252;
+}
+
+/* Flashcard Editor in manage-meetings */
+.add-card-manual-bar {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 20px;
+}
+
+.add-card-manual-bar input {
+    flex: 1;
+    height: 40px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 0 14px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.add-card-manual-bar input:focus {
+    border-color: var(--third-color);
+}
+
+.cards-editor-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.card-editor-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.card-row-index {
+    color: var(--third-color);
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 20px;
+}
+
+.card-inputs-group {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+.card-inputs-group input {
+    flex: 1;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0 10px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.card-inputs-group input:focus {
+    border-color: var(--third-color);
+}
+
+.save-single-card-btn {
+    background: var(--third-color);
+    color: var(--primary-color);
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.delete-single-card-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 82, 82, 0.3);
+    color: #ff5252;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+}
+
+.delete-single-card-btn:hover {
+    background: rgba(255, 82, 82, 0.15);
+}
+
+/* Campo obrigatório vazio (o JS aplica por 2 s ao tentar salvar). Antes a classe não tinha estilo. */
+.danger-input {
+    border-color: #ff5252 !important;
+}

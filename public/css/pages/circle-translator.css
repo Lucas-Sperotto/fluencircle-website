@@ -1,0 +1,178 @@
+/**
+ * pages/circle-translator.css
+ * Estilos exclusivos do Circle Tradutor (página pública). Carregado só por
+ * circle-translator.html, depois de main.css — por isso pode usar seletores
+ * de elemento (input, header, footer) sem afetar as outras páginas.
+ *
+ * Antes estes estilos estavam num bloco <style> e em atributos style= do HTML.
+ */
+
+body {
+    background-color: var(--primary-color);
+    color: var(--text-primary);
+    margin: 0;
+    padding-bottom: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    width: 100%;
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+#translator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 90px;
+}
+
+#session-badge {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#sessionName {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+#sessionName.session-label--active {
+    color: var(--third-color);
+}
+
+.translator-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#translator-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+    align-items: center;
+}
+
+input {
+    height: 100px;
+    background-color: var(--surface-color);
+    /* Antes era só `border: var(--border-color)`, que não desenha borda nenhuma. */
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    width: 90vw;
+    max-width: 600px;
+    text-indent: 10px;
+    font-family: 'Montserrat', sans-serif;
+    color: white;
+    outline: none;
+    font-size: 1rem;
+}
+
+input::placeholder {
+    letter-spacing: .8px;
+    font-family: 'Montserrat', sans-serif !important;
+    color: var(--text-muted);
+}
+
+input:focus {
+    border-color: var(--third-color);
+}
+
+#translateBtn {
+    border-radius: 50px;
+    cursor: pointer;
+    padding: 12px 30px;
+    font-weight: bold;
+}
+
+/* Avisos de status/feedback abaixo do tradutor */
+.status-message {
+    width: 90vw;
+    max-width: 600px;
+    margin-top: 15px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    text-align: center;
+    display: none;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.status-message.info {
+    background-color: rgba(0, 210, 255, 0.15);
+    color: var(--accent-blue);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    display: block;
+}
+
+.status-message.success {
+    background-color: rgba(43, 253, 120, 0.15);
+    color: var(--third-color);
+    border: 1px solid rgba(43, 253, 120, 0.3);
+    display: block;
+}
+
+.status-message.warning {
+    background-color: rgba(211, 95, 95, 0.15);
+    color: #ff8080;
+    border: 1px solid rgba(211, 95, 95, 0.3);
+    display: block;
+}
+
+.status-message.error {
+    background-color: rgba(211, 95, 95, 0.2);
+    color: var(--second-color);
+    border: 1px solid rgba(211, 95, 95, 0.4);
+    display: block;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    background-color: var(--surface-color);
+    height: 100px;
+    font-size: .7rem;
+    /* Mesma correção do input: a borda precisa de espessura e estilo. */
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#footer-message {
+    display: flex;
+    width: 90%;
+    max-width: 600px;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#footer-message p {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text-secondary);
+}
+
+/* Link com aparência de botão (antes era um <button> dentro de um <a>, HTML inválido). */
+.join-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: .7rem;
+    width: 140px;
+    height: 35px;
+    border-radius: 50px;
+    font-weight: bold;
+    text-decoration: none;
+}
