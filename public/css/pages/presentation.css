@@ -324,3 +324,35 @@ right: -28px;
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Situação da publicação no tradutor público (posse da sessão ativa, Issue #9). */
+.presentation-status {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(640px, 90vw);
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    text-align: center;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    z-index: 10;
+}
+
+.presentation-status:empty {
+    display: none;
+}
+
+.presentation-status[data-tone="warning"] {
+    color: #ffd54f;
+    border-color: rgba(255, 213, 79, 0.5);
+}
+
+.presentation-status[data-tone="error"] {
+    color: #ff8a80;
+    border-color: rgba(255, 138, 128, 0.5);
+}
