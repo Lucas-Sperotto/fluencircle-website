@@ -26,5 +26,7 @@ jobs:
         run: find public/js tests scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
       - name: Referências HTML e propostas JSON
         run: node scripts/verify-static.mjs
+      - name: Limites de arquitetura e sinks HTML
+        run: node scripts/verify-architecture.mjs
 
 # Intencionalmente não há deploy, acesso ao Firebase, backend ou segredos.
