@@ -1,43 +1,69 @@
 # Runbook de segurança e implantação — FluenCircle
 
-**Ambiente:** desenvolvimento/CI estático como padrão. **Estado de produção:** BLOQUEADO até os gates de auditoria independente. Este documento **não é** um script de deploy.
+**Ambiente padrão:** Emulator local e CI. **Estado de produção:** BLOQUEADO (**NO-GO**) até os gates abaixo. Este
+documento **não é** script de deploy; deploy é sempre ação humana explícita.
 
-## Segurança operacional
+## 1. Ambientes
 
-**1. Produção e segredos.** O arquivo `public/js/config/firebase.config.js` referencia um projeto real. Não testar cadastro, presença, exclusões ou traduções com dados reais. Não gravar chaves em `.env` versionado, Issues ou PRs; a configuração web pública do Firebase e a chave de API de backend são categorias diferentes. Investigar a credencial do histórico por canal privado.
+| Ambiente | Como é selecionado | Dados | Quem usa | Estado |
+| --- | --- | --- | --- | --- |
+| Local / Emulator | página em `localhost`/`127.0.0.1` (automático) + `npm run emulators` | sintéticos (`npm run emulators:seed`) | estudantes e desenvolvimento | ✅ implementado (ADR-002) |
+| CI (GitHub Actions) | jobs `offline`, `rules-emulator`, `e2e` | sintéticos; Emulator dentro do runner | PRs e `main` | ✅ configurado; **ainda não executado** com estes jobs |
+| Staging | projeto Firebase separado + domínio próprio | cópia controlada ou sintéticos | validação antes de produção | ❌ **não existe** — decisão humana |
+| Produção | qualquer endereço não local (`fluentech-1e18a`) | reais | público | publicação bloqueada |
 
-**2. Staging/Emulator.** Preparar projeto/instância isolados e dados sintéticos. Documentar projectId/host de teste sem segredos, contas (anônimo/aluno/mediador/admin), versão de regras, dataset, portas e instruções de reset. O script `npm test` e a CI atual não estabelecem conexão com Firebase, de propósito.
+## 2. Segredos e credenciais
 
-**3. Backup e restauração.** Antes de qualquer migração de esquema (índices de presença, mudança de sessão global, papéis), exportar backup seguro do RTDB, documentar procedimento de restauração testado em staging e janela de rollback. Não exportar PII para repositório público.
+- A configuração **web** do Firebase não é segredo; chave do Gemini, credenciais do Admin SDK, exportações do Auth e
+  backups do banco **são**. Nunca no Git, Issues, PRs, logs, relatórios ou prompts de IA.
+- **Credencial histórica (Issue #6):** uma chave esteve em `public/js/env.js` entre os commits `6c8f017` e `d680b33`.
+  Apagar arquivo não a remove do histórico. **Somente o operador do Google Cloud** pode identificar o tipo, verificar
+  uso, revogar/rotacionar e registrar evidência sanitizada. Nenhuma IA confirmou a rotação.
+- Variáveis do backend (nomes): ver `docs/backend/CONTRATO_BACKEND.md` §4.
 
-**4. Mudanças de regras.** Versionar arquivo exato das regras ativas após sanitização apropriada. Comparar com proposta, revisar por duas pessoas, criar testes positivos/negativos no Emulator. Nunca fazer `firebase deploy --only database` a partir da proposta não aprovada.
+## 3. Mudanças de regras
 
-**5. Backend.** Necessária revisão do repositório do serviço Render: entrada de prompts, credenciais, CORS, logging, tamanho, rate limit, cotas, autenticação e App Check. O frontend não consegue compensar uma rota pública ilimitada.
+1. Exportar as regras **ativas** e versioná-las (ver `BACKUP_E_ROLLBACK.md`).
+2. Editar a fonte `firebase/rules/database.rules.source.mjs`, rodar `npm run rules:build`.
+3. `npm run test:rules` (Emulator) e `npm run test:rules:sim`; anexar os logs ao PR.
+4. Revisão por duas pessoas; publicação primeiro em staging. Nunca `firebase deploy --only database` a partir de
+   uma proposta não aprovada.
 
-**6. Release.** Conferir Issue, PR, aprovação, status CI, teste de integração, documentos atualizados, owners, versão de rollback e evidências. Deploy só por ação humana explícita e monitoramento posterior (falhas, custos, acesso anônimo).
+## 4. Backend
 
-## Comandos apenas de verificação offline
+Código não acessível nesta entrega (bloqueio registrado). Antes de produção: auditoria do repositório, prompt no
+servidor, App Check, rate limit, teto de custo, CORS restrito, logs sem PII e testes de contrato.
+
+## 5. Release
+
+Checklist completo em `docs/entrega/CHECKLIST_FINAL.md`. Backup e rollback em `docs/operacao/BACKUP_E_ROLLBACK.md`.
+
+## 6. Comandos seguros (não alteram serviços externos)
 
 ```bash
 npm test
-find public/js tests scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+npm run rules:check
+npm run test:rules:sim
+npm run test:e2e
+npm run test:rules          # Emulator local, projeto demo
 node scripts/verify-static.mjs
+node scripts/verify-architecture.mjs
 ```
 
-Esses comandos podem rodar no clone sem modificar dados externos. Não incluem `firebase serve`, `firebase deploy`, script de alteração de banco nem testes em produção.
+## 7. Registro de decisão (19/11/2026)
 
-## Registro de decisão
-
-| Critério | Estado nesta auditoria |
+| Critério | Estado |
 | --- | --- |
-| CI offline | Aprovado para PR #16; 25 testes |
-| Firebase real exportado/testado | **Pendente** |
-| Escrita pública com proteção contra abuso | **Pendente** |
-| Credencial antiga operacionalmente avaliada | **Pendente** |
-| Backend Render auditado | **Pendente** |
-| Mediadores concorrentes | **Pendente** |
-| LGPD e leitura mínima | **Pendente** |
-| E2E e regressão visual | **Pendente** |
+| CI offline + simulador de regras | Configurado; executado localmente (ver `docs/entrega/MATRIZ_DE_TESTES.md`) |
+| Regras propostas testadas no **Emulator** | **Pendente** (job `rules-emulator`; não executado no ambiente da implementação) |
+| Regras **reais** exportadas e comparadas | **Pendente** (operador) |
+| Escrita pública com proteção contra abuso | **Pendente** (backend); proposta nega escrita anônima |
+| Credencial antiga avaliada/rotacionada | **Pendente** (operador GCP) |
+| Backend Render auditado | **Bloqueado** (sem acesso ao código) |
+| Mediadores concorrentes | Implementado (ADR-003); testado com Firebase simulado; Emulator pendente |
+| Leitura mínima e PII | Implementado (ADR-004); migração de dados reais **pendente** |
+| E2E e acessibilidade básica | 44 casos com Firebase simulado; E2E contra Emulator/staging **pendente** |
+| Staging, backup testado e rollback | **Pendente** |
 | Autorização humana para deploy | **Ausente** |
 
-**Decisão:** NO-GO para deploy. Aberto para revisão e merges de código/documentação com escopo e testes explícitos.
+**Decisão: NO-GO para produção.** Liberado para revisão, merges de código/documentação e entrega acadêmica.
