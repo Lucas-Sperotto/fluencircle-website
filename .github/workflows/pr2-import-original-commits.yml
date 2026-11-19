@@ -1,4 +1,4 @@
-name: PR2 - importar os 8 commits originais Claude no fork
+name: PR2 - importar os 10 commits revisados ao fork
 on:
   push:
     branches: [audit/pr2-upstream-transport]
@@ -12,16 +12,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verificar e importar bundle (sem tocar main)
+      - name: Reproduzir bundle revisado, preservar 8 commits Claude e 2 ChatGPT
         shell: bash
         run: |
           set -euo pipefail
           git fetch --no-tags https://github.com/fluencircle/fluencircle-website.git main
           git cat-file -e da51788186261d3c013770ab9dae6a9ebbd8ce9f^{commit}
-          git bundle verify transport/pr2-claude-original.bundle
-          git fetch transport/pr2-claude-original.bundle refs/heads/feat/planos-agenda-pr2:refs/remotes/claude/pr2
-          test "$(git rev-parse refs/remotes/claude/pr2)" = "3e71fc959827c40f15f9f688dcf471edd03333b1"
-          test "$(git rev-list --count da51788186261d3c013770ab9dae6a9ebbd8ce9f..3e71fc959827c40f15f9f688dcf471edd03333b1)" = "8"
-          git merge-base --is-ancestor da51788186261d3c013770ab9dae6a9ebbd8ce9f 3e71fc959827c40f15f9f688dcf471edd03333b1
-          git push origin 3e71fc959827c40f15f9f688dcf471edd03333b1:refs/heads/feat/planos-agenda-pr2
-          echo "Exatos 8 commits Claude preservados na branch PR2, main intocada."
+          git bundle verify transport/pr2-claude-reviewed.bundle
+          git fetch transport/pr2-claude-reviewed.bundle refs/heads/feat/planos-agenda-pr2:refs/remotes/claude/pr2-reviewed
+          test "$(git rev-parse refs/remotes/claude/pr2-reviewed)" = "90b6bde3da936d0164c1262c6015aebe678a9489"
+          test "$(git rev-list --count da51788186261d3c013770ab9dae6a9ebbd8ce9f..90b6bde3da936d0164c1262c6015aebe678a9489)" = "10"
+          test "$(git rev-parse 90b6bde3da936d0164c1262c6015aebe678a9489~2)" = "3e71fc959827c40f15f9f688dcf471edd03333b1"
+          git push origin 90b6bde3da936d0164c1262c6015aebe678a9489:refs/heads/feat/planos-agenda-pr2
+          echo "Importados sem tocar main: 8 SHAs Claude + 2 SHAs ChatGPT."
