@@ -34,6 +34,7 @@ O site aponta para o projeto Firebase `fluentech-1e18a` (configuração em `publ
 ```bash
 npm test             # testes unitários de domain/ e mapas de serviços (Node 20+, sem dependências)
 node scripts/verify-static.mjs   # verifica arquivos locais e propostas JSON
+node scripts/verify-architecture.mjs  # valida camadas e sinks HTML proibidos
 ```
 
 ## Estrutura
