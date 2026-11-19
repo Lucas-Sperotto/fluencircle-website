@@ -178,6 +178,31 @@ export function addAttendee(session, uid) {
 }
 
 /**
+ * Índice de presença do próprio aluno (`user_sessions/{uid}`).
+ * @param {string} uid
+ * @returns {Promise<Record<string, unknown>>}
+ */
+export async function getUserSessionIndex(uid) {
+  const snapshot = await get(ref(database, dbPath(DB_PATHS.userSessions, uid)));
+  return snapshot.exists() ? snapshot.val() : {};
+}
+
+/**
+ * Tema e início de UMA sessão, lidos campo a campo (as regras liberam só esses
+ * campos para quem participou). Usado para entradas antigas do índice (`true`).
+ * @param {string} sessionId
+ * @returns {Promise<{ topic: string, startedAt: string } | null>} null se a sessão não existe mais
+ */
+export async function getSessionSummary(sessionId) {
+  const [topic, startedAt] = await Promise.all([
+    get(ref(database, dbPath(DB_PATHS.sessions, sessionId, 'topic'))),
+    get(ref(database, dbPath(DB_PATHS.sessions, sessionId, 'startedAt'))),
+  ]);
+  if (!topic.exists() && !startedAt.exists()) return null;
+  return { topic: topic.val() || '', startedAt: startedAt.val() || '' };
+}
+
+/**
  * Remove presença e índice reverso conjuntamente.
  * Antes a segunda operação podia falhar silenciosamente e deixar índice órfão.
  */

@@ -4,12 +4,17 @@
  * Aluno vê as sessões em que esteve presente; mediador e administrador veem todas.
  * Sessões sem flashcards não aparecem. Ao terminar a pilha, a etapa de revisão
  * espaçada avança se estiver liberada (domain/srs.js).
+ *
+ * Privacidade e escala (Issue #10): o aluno lê SÓ o próprio índice
+ * `user_sessions/{uid}` e os cards de cada sessão dele — nunca a coleção de
+ * sessões (com presenças de outras pessoas) nem a de todos os cards.
  */
 import { initProtectedPage } from './shared/page-setup.js';
-import { listSessions } from '../services/sessions.service.js';
-import { listAllFlashcards } from '../services/flashcards.service.js';
+import { listSessions, getUserSessionIndex, getSessionSummary } from '../services/sessions.service.js';
+import { listAllFlashcards, listSessionFlashcards } from '../services/flashcards.service.js';
 import { getStudentReviews, saveReviewProgress } from '../services/reviews.service.js';
 import { calculateSRSStatus, canAdvanceStage, buildStageCompletion, FINAL_STAGE, STAGE_COMPLETION_MESSAGES } from '../domain/srs.js';
+import { parseUserSessionIndex, sortDecks } from '../domain/user-sessions.js';
 import { formatDate, nowIso } from '../domain/format.js';
 import { isStaff } from '../core/roles.js';
 import { h, icon, byId, replaceContent, makeActivatable } from '../ui/dom.js';
@@ -36,33 +41,54 @@ const cardStack = new CardStack({
   onExit: () => showList(),
 });
 
+const hasCards = (cards) => Boolean(cards) && Object.keys(cards).length > 0;
+
 /**
- * Busca sessões, cards e progresso e monta a lista de decks visíveis para o usuário.
- * @returns {Promise<object[]|null>} decks, ou null se não houver nenhuma sessão
+ * Equipe: lê todas as sessões e cards (pode estudar qualquer deck).
+ * @returns {Promise<object[]|null>} null se nenhuma sessão foi realizada
+ */
+async function loadStaffDecks() {
+  const [sessions, flashcardsBySession] = await Promise.all([listSessions(), listAllFlashcards()]);
+  if (Object.keys(sessions).length === 0) return null;
+  return Object.entries(sessions)
+    .filter(([id, session]) => session && hasCards(flashcardsBySession[id]))
+    .map(([id, session]) => ({ id, topic: session.topic, startedAt: session.startedAt, cards: flashcardsBySession[id] }));
+}
+
+/**
+ * Aluno: só o próprio índice e, para cada sessão dele, os cards (e o resumo,
+ * se a entrada do índice for do formato antigo). Uma sessão com erro de leitura
+ * não derruba a lista inteira: é registrada e a pessoa recebe um aviso.
+ * @returns {Promise<object[]>}
+ */
+async function loadStudentDecks() {
+  const entries = parseUserSessionIndex(await getUserSessionIndex(currentUser.uid));
+  const results = await Promise.allSettled(entries.map(async ({ sessionId, summary }) => {
+    const [resolved, cards] = await Promise.all([summary ?? getSessionSummary(sessionId), listSessionFlashcards(sessionId)]);
+    return resolved && hasCards(cards) ? { id: sessionId, ...resolved, cards } : null;
+  }));
+  const failed = results.filter((result) => result.status === 'rejected');
+  if (failed.length) {
+    console.error('Decks que não puderam ser carregados:', failed.map((result) => result.reason));
+    showToast('Alguns decks não puderam ser carregados. Tente novamente mais tarde.', 'info');
+  }
+  return results.filter((result) => result.status === 'fulfilled' && result.value).map((result) => result.value);
+}
+
+/**
+ * Monta a lista de decks visíveis para o usuário, com o progresso de revisão.
+ * @returns {Promise<object[]|null>} decks, ou null se não houver nenhuma sessão (visão da equipe)
  */
 async function loadDecks() {
-  const [sessions, flashcardsBySession, reviews] = await Promise.all([
-    listSessions(),
-    listAllFlashcards(),
+  const [baseDecks, reviews] = await Promise.all([
+    isStaff(currentRole) ? loadStaffDecks() : loadStudentDecks(),
     getStudentReviews(currentUser.uid),
   ]);
-  if (Object.keys(sessions).length === 0) return null;
-
-  const decks = [];
-  for (const [id, session] of Object.entries(sessions)) {
-    const cards = flashcardsBySession[id];
-    if (!session || !cards || Object.keys(cards).length === 0) continue;
-    const attended = Boolean(session.attendees?.[currentUser.uid]);
-    if (!isStaff(currentRole) && !attended) continue;
-    const review = reviews[id];
-    decks.push({ id, ...session, cards, review, srs: calculateSRSStatus(session, review) });
-  }
-
-  // Revisões pendentes primeiro; depois, as sessões mais recentes.
-  return decks.sort((a, b) => {
-    if (a.srs.isDue !== b.srs.isDue) return a.srs.isDue ? -1 : 1;
-    return new Date(b.startedAt || 0) - new Date(a.startedAt || 0);
-  });
+  if (baseDecks === null) return null;
+  return sortDecks(baseDecks.map((deck) => {
+    const review = reviews[deck.id];
+    return { ...deck, review, srs: calculateSRSStatus(deck, review) };
+  }));
 }
 
 function renderStage(number, label, srs) {
