@@ -7,6 +7,7 @@
  */
 import { database, ref, get, set, push, update, remove, onValue, onDisconnect } from '../core/firebase.js';
 import { nowIso } from '../domain/format.js';
+import { buildAddAttendeeUpdates, buildRemoveAttendeeUpdates, buildDeleteSessionUpdates } from './session-updates.js';
 import { DB_PATHS, dbPath } from './db-paths.js';
 
 /**
@@ -79,45 +80,25 @@ export function watchCurrentSession(callback) {
 }
 
 /**
- * Marca presença na sessão e no índice do aluno numa escrita atômica.
- * @param {string} sessionId
- * @param {string} uid
- * @param {{ name: string, email: string }} attendee
+ * Marca presença e índice em um único update atômico; propaga falhas de regras.
  */
 export function addAttendee(sessionId, uid, { name, email }) {
-  return update(ref(database), {
-    [dbPath(DB_PATHS.sessions, sessionId, 'attendees', uid)]: { name, email, addedAt: nowIso() },
-    [dbPath(DB_PATHS.userSessions, uid, sessionId)]: true,
-  });
+  return update(ref(database), buildAddAttendeeUpdates(sessionId, uid, { name, email }, nowIso()));
 }
 
 /**
- * Remove a presença. Agora também limpa o índice `user_sessions` (antes ficava
- * para trás). A limpeza é separada para não impedir a remoção principal caso
- * as regras do banco não permitam apagar o índice.
- * @param {string} sessionId
- * @param {string} uid
+ * Remove presença e índice reverso conjuntamente.
+ * Antes a segunda operação podia falhar silenciosamente e deixar índice órfão.
  */
-export async function removeAttendee(sessionId, uid) {
-  await remove(ref(database, dbPath(DB_PATHS.sessions, sessionId, 'attendees', uid)));
-  await remove(ref(database, dbPath(DB_PATHS.userSessions, uid, sessionId)))
-    .catch((error) => console.warn('Índice user_sessions não removido:', error));
+export function removeAttendee(sessionId, uid) {
+  return update(ref(database), buildRemoveAttendeeUpdates(sessionId, uid));
 }
 
 /**
- * Apaga a sessão e seus flashcards; depois limpa o índice dos participantes.
- * @param {string} sessionId
- * @param {string[]} attendeeUids
+ * Remove sessão, flashcards e índices informados em um update multicaminho.
+ * Se faltar permissão em qualquer caminho, a operação inteira é rejeitada.
+ * Uma lista de participantes desatualizada ainda exige reconciliação futura.
  */
-export async function deleteSession(sessionId, attendeeUids = []) {
-  await Promise.all([
-    remove(ref(database, dbPath(DB_PATHS.sessions, sessionId))),
-    remove(ref(database, dbPath(DB_PATHS.flashcards, sessionId))),
-  ]);
-  if (attendeeUids.length === 0) return;
-  const cleanup = Object.fromEntries(
-    attendeeUids.map((uid) => [dbPath(DB_PATHS.userSessions, uid, sessionId), null]),
-  );
-  await update(ref(database), cleanup)
-    .catch((error) => console.warn('Índice user_sessions não removido:', error));
+export function deleteSession(sessionId, attendeeUids = []) {
+  return update(ref(database), buildDeleteSessionUpdates(sessionId, attendeeUids));
 }
