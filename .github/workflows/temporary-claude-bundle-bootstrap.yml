@@ -1,0 +1,28 @@
+name: Temporary Claude bundle validation bootstrap
+on:
+  push:
+    branches: [audit/claude-import-bootstrap]
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Create full git baseline bundle
+        run: |
+          set -euo pipefail
+          git cat-file -e 5d0180cf34839544c3c9cbc9307133612fddd3f7^{commit}
+          mkdir -p out
+          git bundle create out/fluencircle-history.bundle --all
+          git bundle verify out/fluencircle-history.bundle
+          git show -s --format='%H %s' 5d0180cf34839544c3c9cbc9307133612fddd3f7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fluencircle-history-base-for-claude-check
+          path: out/fluencircle-history.bundle
+          retention-days: 7
