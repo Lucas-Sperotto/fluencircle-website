@@ -92,7 +92,13 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 - [`docs/diagramas/DIAGRAMAS.md`](docs/diagramas/DIAGRAMAS.md) — 9 diagramas Mermaid (AS-IS e TO-BE)
 - [`docs/engenharia/ADR-001-ARQUITETURA.md`](docs/engenharia/ADR-001-ARQUITETURA.md) — decisão de preservar módulos sem build
 - [`docs/processo/CHANGELOG_IA.md`](docs/processo/CHANGELOG_IA.md) — autoria atribuída e trilha de PRs por IA
-- [`prompts/GEMINI_REVISAO_INDEPENDENTE.md`](prompts/GEMINI_REVISAO_INDEPENDENTE.md) — roteiro de revisão cruzada independente
+- [`prompts/GEMINI_REVISAO_INDEPENDENTE.md`](prompts/GEMINI_REVISAO_INDEPENDENTE.md) — roteiro original da revisão cruzada
+- [`docs/auditorias/GEMINI_AUDITORIA.md`](docs/auditorias/GEMINI_AUDITORIA.md) — revisão Gemini recebida e seus 9 achados
+- [`docs/auditorias/GEMINI_TESTES.md`](docs/auditorias/GEMINI_TESTES.md) — testes próprios versus logs de terceiros
+- [`docs/auditorias/GEMINI_FINDINGS.json`](docs/auditorias/GEMINI_FINDINGS.json) — catálogo estruturado dos achados
+- [`docs/auditorias/GEMINI_HANDOFF.md`](docs/auditorias/GEMINI_HANDOFF.md) — decisões pendentes e recomendações
+- [`docs/auditorias/CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md`](docs/auditorias/CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md) — confronto final da revisão com o código
+- [`docs/processo/ENTREGA_FINAL_2026-11-19.md`](docs/processo/ENTREGA_FINAL_2026-11-19.md) — status de PRs, testes e pendências de produção
 
 ## Licença
 
