@@ -26,6 +26,7 @@ const NAV_TOP = [
   { page: 'flash-cards', href: PAGES.flashcards, icon: 'fa-layer-group', label: 'Flash Cards' },
   { page: 'slide-show', href: PAGES.presentation, icon: 'fa-play', label: 'Iniciar sessão', access: 'mediator' },
   { page: 'set-meeting', href: PAGES.themes, icon: 'fa-comments', label: 'Temas', access: 'mediator' },
+  { page: 'plans', href: PAGES.plans, icon: 'fa-calendar-week', label: 'Planos e agenda', access: 'mediator' },
 ];
 const NAV_BOTTOM = [
   { divider: true, access: 'admin' },

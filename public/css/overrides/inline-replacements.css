@@ -266,7 +266,8 @@
     text-align: left;
 }
 
-#user-role-select {
+#user-role-select,
+#user-plan-select {
     height: 44px;
     border-radius: 50px;
     background: #121e2c;

@@ -91,6 +91,7 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 
 **Comece por aqui (entrega ao aluno):**
 - [`docs/entrega/GUIA_DO_ALUNO.md`](docs/entrega/GUIA_DO_ALUNO.md) — instalação, demonstração local, testes e como continuar
+- [`docs/entrega/PLANOS_E_AGENDA.md`](docs/entrega/PLANOS_E_AGENDA.md) — manual de planos, permissões e agenda semanal (porte do PR original #2)
 - [`docs/entrega/ARQUITETURA_E_FLUXOS.md`](docs/entrega/ARQUITETURA_E_FLUXOS.md) — módulos, dados, fluxos, frontend × backend
 - [`docs/entrega/MATRIZ_DE_TESTES.md`](docs/entrega/MATRIZ_DE_TESTES.md) — comandos executados, resultados e o que não provam
 - [`docs/entrega/LIMITACOES_E_PENDENCIAS.md`](docs/entrega/LIMITACOES_E_PENDENCIAS.md) — local × produção × futuro
@@ -99,7 +100,7 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 **Engenharia:**
 - [`docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md`](docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md) — requisitos, casos de uso e rastreabilidade
 - [`docs/engenharia/MATRIZ_DE_ACESSO.md`](docs/engenharia/MATRIZ_DE_ACESSO.md) — quem acessa o quê (interface e dados), com testes
-- ADRs: [001 arquitetura](docs/engenharia/ADR-001-ARQUITETURA.md) · [002 ambientes e regras](docs/engenharia/ADR-002-AMBIENTES-E-REGRAS.md) · [003 sessão ativa](docs/engenharia/ADR-003-SESSAO-ATIVA.md) · [004 privacidade](docs/engenharia/ADR-004-PRIVACIDADE-E-LEITURA.md)
+- ADRs: [001 arquitetura](docs/engenharia/ADR-001-ARQUITETURA.md) · [002 ambientes e regras](docs/engenharia/ADR-002-AMBIENTES-E-REGRAS.md) · [003 sessão ativa](docs/engenharia/ADR-003-SESSAO-ATIVA.md) · [004 privacidade](docs/engenharia/ADR-004-PRIVACIDADE-E-LEITURA.md) · [005 planos e agenda](docs/engenharia/ADR-005-PLANOS-E-AGENDA.md)
 - [`docs/diagramas/DIAGRAMAS.md`](docs/diagramas/DIAGRAMAS.md) — 14 diagramas Mermaid (AS-IS e TO-BE)
 - [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — camadas, ciclo das páginas, modelo de dados, CSS
 - [`docs/firebase/LEIA-ME.md`](docs/firebase/LEIA-ME.md) — regras, Emulator e hosting

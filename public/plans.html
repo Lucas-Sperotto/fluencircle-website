@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FluenCircle | Planos e agenda</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script type="module" src="js/ui/app-shell.js"></script>
+    <script type="module" src="js/pages/plans.page.js"></script>
+</head>
+<body data-shell="app" data-page="plans">
+    <!-- Planos de assinatura e agenda semanal (PR #2, ADR-005).
+         Equipe: define tema e link de cada encontro da semana. Admin: também cria e edita planos. -->
+    <main id="plans-page">
+        <div class="content content--list">
+            <div class="page-header page-header--stack">
+                <div class="page-header__titles">
+                    <h2>Planos e agenda</h2>
+                    <p>Defina o tema e o link de cada encontro da semana e gerencie os planos de assinatura.</p>
+                </div>
+                <div class="plans-tabs" role="tablist" aria-label="Seções">
+                    <button type="button" role="tab" class="plans-tab active" id="tab-week" aria-selected="true" aria-controls="week-panel">
+                        <i class="fa-solid fa-calendar-week" aria-hidden="true"></i> Agenda da semana
+                    </button>
+                    <button type="button" role="tab" class="plans-tab" id="tab-plans" aria-selected="false" aria-controls="plans-panel">
+                        <i class="fa-solid fa-crown" aria-hidden="true"></i> Planos
+                    </button>
+                </div>
+            </div>
+
+            <section id="week-panel" role="tabpanel" aria-labelledby="tab-week" class="plans-panel">
+                <div class="week-nav">
+                    <button type="button" class="secondary-btn week-nav__btn" id="prev-week-btn" aria-label="Semana anterior">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <p class="week-nav__label" id="week-label" aria-live="polite"></p>
+                    <button type="button" class="secondary-btn week-nav__btn" id="next-week-btn" aria-label="Próxima semana">
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="week-agenda" id="week-agenda" aria-live="polite">
+                    <!-- Preenchido por js/pages/plans.page.js -->
+                </div>
+            </section>
+
+            <section id="plans-panel" role="tabpanel" aria-labelledby="tab-plans" class="plans-panel hidden">
+                <div class="plans-panel__actions admin-access hidden">
+                    <button type="button" id="open-create-plan-btn" class="home-btn home-btn--auto">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> Novo plano
+                    </button>
+                </div>
+                <div class="plans-grid" id="plans-grid" aria-live="polite">
+                    <!-- Preenchido por js/pages/plans.page.js -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal: tema e link de um encontro da semana -->
+    <div class="modal-container hidden" id="slot-modal">
+        <div class="modal modal--form" role="dialog" aria-modal="true" aria-labelledby="slot-modal-title">
+            <button type="button" class="close-end-meeting-btn" id="close-slot-modal-btn" aria-label="Fechar">
+                <i class="fa-solid fa-x" aria-hidden="true"></i>
+            </button>
+            <div class="modal-content">
+                <h3 id="slot-modal-title">Encontro</h3>
+                <p class="modal-sub-info" id="slot-modal-info"></p>
+                <form id="slot-form" class="user-form">
+                    <div class="form-item">
+                        <label for="slot-theme-select">Tema</label>
+                        <select id="slot-theme-select" class="plans-select" required></select>
+                    </div>
+                    <div class="form-item">
+                        <label for="slot-meet-link">Link da chamada (opcional)</label>
+                        <input type="url" id="slot-meet-link" placeholder="https://meet.google.com/..." autocomplete="off" maxlength="500">
+                    </div>
+                    <div class="flexbox">
+                        <button type="button" id="clear-slot-btn" class="danger-btn">Remover tema</button>
+                        <button type="submit" id="save-slot-btn" class="home-btn home-btn--auto home-btn--roomy">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: criar / editar plano (admin) -->
+    <div class="modal-container hidden" id="plan-modal">
+        <div class="modal modal--form" role="dialog" aria-modal="true" aria-labelledby="plan-modal-title">
+            <button type="button" class="close-end-meeting-btn" id="close-plan-modal-btn" aria-label="Fechar">
+                <i class="fa-solid fa-x" aria-hidden="true"></i>
+            </button>
+            <div class="modal-content">
+                <h3 id="plan-modal-title">Novo plano</h3>
+                <form id="plan-form" class="user-form">
+                    <div class="form-item">
+                        <label for="plan-name">Nome</label>
+                        <input type="text" id="plan-name" placeholder="Ex: Essencial" required maxlength="80" autocomplete="off">
+                    </div>
+                    <div class="form-item">
+                        <label for="plan-price">Preço mensal (R$)</label>
+                        <input type="text" id="plan-price" placeholder="Ex: 120 ou 89,90" required inputmode="decimal" autocomplete="off">
+                    </div>
+                    <div class="form-item">
+                        <label for="plan-description">Descrição (opcional)</label>
+                        <input type="text" id="plan-description" maxlength="300" autocomplete="off">
+                    </div>
+                    <fieldset class="plan-schedule">
+                        <legend>Horários semanais</legend>
+                        <div id="plan-schedule-rows"></div>
+                        <button type="button" class="secondary-btn" id="add-schedule-row-btn">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i> Adicionar horário
+                        </button>
+                    </fieldset>
+                    <div class="flexbox">
+                        <button type="button" id="cancel-plan-btn" class="secondary-btn">Cancelar</button>
+                        <button type="submit" id="save-plan-btn" class="home-btn home-btn--auto home-btn--roomy">Salvar plano</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
