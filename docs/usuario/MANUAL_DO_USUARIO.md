@@ -42,7 +42,11 @@ As instruções descrevem o comportamento observado na main após os PRs #2 e #1
 5. Use o tradutor integrado quando precisar; as traduções podem gerar flashcards vinculados à sessão.
 6. Ao terminar, use **Encerrar** e confirme.
 
-**Importante:** a versão analisada mantém **uma sessão ativa global** no banco. Não abra duas sessões simultâneas em produção sem antes corrigir a concorrência de `current_session`. Se aparecer o erro ao encerrar, a sessão permanece na tela para uma nova tentativa. O sistema ainda não permite dois mediadores simultâneos com segurança comprovada.
+**Uma sessão por vez no tradutor público.** O tradutor mostra apenas uma sessão. Se outra tela (outro mediador ou outra aba sua) já estiver apresentando, o sistema pergunta antes: **Cancelar** não cria nada; **Assumir o tradutor** passa as traduções para a sua sessão e a outra tela recebe o aviso "Outra tela assumiu o tradutor público" — ela continua salvando presença e cards na própria sessão.
+
+**Barra de status da sessão:** "Publicada no tradutor público" (normal); "Sem conexão" (a sessão some do tradutor até a rede voltar e é restaurada sozinha); "Outra tela assumiu..." (outra apresentação está no tradutor). Fechar a aba tira a sessão do tradutor, sem apagar a de outra pessoa. Se aparecer erro ao encerrar, a sessão permanece na tela para nova tentativa.
+
+*Estado da verificação:* comportamento testado com Firebase simulado e regras propostas; o teste no Firebase Emulator está configurado na CI e o uso em produção depende da publicação das regras (decisão humana).
 
 ## 5. Mediador — consultar sessões e cards
 

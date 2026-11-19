@@ -41,7 +41,7 @@ Referência: <https://firebase.google.com/docs/database/security/core-syntax>.
 | `meetings` (temas) | ❌ | ❌ | lê e grava | lê e grava | título 1–200, ≥ 1 pergunta, sem campos extras |
 | `meeting_sessions` | ❌ | lê (compatibilidade, ver abaixo) | lê e grava | lê e grava | `mediatorEmail` = e-mail do token de quem cria |
 | `…/attendees/{uid}` | ❌ | ❌ | grava **junto** com `user_sessions` | idem | aluno precisa ter perfil |
-| `current_session` | **lê** | lê | grava | grava | só id, título e início; sessão precisa existir |
+| `current_session` | **lê** | lê | publica com posse | publica com posse | só id, título, início e posse (sem pessoas); versão +1 na troca de dono; assumir apresentação viva exige `takeoverOf`; presença só do dono — testes em `sessao-ativa.rules.test.mjs` |
 | `flashcards/{sessão}` | ❌ **(não cria card)** | lê (compatibilidade) | lê e grava | lê e grava | frente/verso 1–500, `sessionId` coerente, sessão existente |
 | `student_reviews/{uid}` | ❌ | lê/grava o **próprio**, só em sessão de que participou | o próprio (estuda qualquer deck) | o próprio | etapa avança **de 1 em 1** (1→2→3) com carimbo ISO |
 | `user_sessions/{uid}` | ❌ | lê o **próprio** | grava (com presença) | grava (com presença) | ninguém se inscreve sozinho |
@@ -55,7 +55,8 @@ inteiros, porque `flashcards.page.js` faz isso. A restrição por presença (Iss
   retroativo **no próprio progresso** (só prejudica o próprio estudo).
 - Mediadores leem nome e e-mail de todos os perfis (necessário para a busca de presença). Alternativa futura:
   um diretório só com nome de exibição.
-- Qualquer membro da equipe pode apagar `current_session` (encerrar). A posse entre abas/mediadores é tratada na Issue #9.
+- Qualquer membro da equipe pode apagar `current_session` (encerrar); o cliente só apaga se for a aba dona.
+  Decisão e plano de salas por código/QR em `docs/engenharia/ADR-003-SESSAO-ATIVA.md`.
 
 ## Testar (nunca em produção)
 

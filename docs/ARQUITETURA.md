@@ -55,7 +55,8 @@ deleted_users/{uid}                deletedAt, deletedBy            (lista de blo
 meetings/{temaId}                  topic, questions[], createdAt, updatedAt
 meeting_sessions/{sessaoId}        templateId, topic, startedAt, mediatorEmail,
                                    attendees/{uid}: { name, email, addedAt }
-current_session                    sessionId, topic, startedAt     (lido pelo tradutor público)
+current_session                    sessionId, topic, startedAt, presenterId, version,
+                                   takeoverOf?, live/{presenterId}  (tradutor público; posse por aba — ADR-003)
 flashcards/{sessaoId}/{cardId}     front, back, topic, sessionId, createdAt
 student_reviews/{uid}/{sessaoId}   stage, lastReviewedAt, stage1CompletedAt...
 user_sessions/{uid}/{sessaoId}     true                            (índice de presença)
@@ -63,7 +64,7 @@ user_sessions/{uid}/{sessaoId}     true                            (índice de p
 
 ## Fluxos principais
 
-**Sessão ao vivo** (`pages/presentation/`): o mediador escolhe um tema (`theme-picker.js`) → "Iniciar" grava a sessão e publica `current_session` com `onDisconnect`, que apaga o nó sozinho se a aba fechar ou a conexão cair → os slides (`slides.js`) avançam com setas, espaço ou clique → presença (`attendance.js`) grava na sessão e em `user_sessions` numa escrita atômica → o tradutor (`translator-modal.js`) traduz pelo backend e salva o par como flashcard → "Encerrar" despublica.
+**Sessão ao vivo** (`pages/presentation/`): o mediador escolhe um tema (`theme-picker.js`) → "Iniciar" pergunta antes de assumir o tradutor se outra tela estiver no ar, grava a sessão e publica `current_session` por transação com posse desta aba; o `onDisconnect` apaga só a presença desta aba (`live/{presenterId}`), então uma aba antiga não derruba a nova (ADR-003) → os slides (`slides.js`) avançam com setas, espaço ou clique → presença (`attendance.js`) grava na sessão e em `user_sessions` numa escrita atômica → o tradutor (`translator-modal.js`) traduz pelo backend e salva o par como flashcard → "Encerrar" despublica.
 
 **Tradutor público** (`pages/circle-translator.page.js`): observa `current_session` em tempo real; cada tradução feita com uma sessão ativa vira flashcard dessa sessão. Funciona sem login — por isso as regras do banco precisam limitar o que um visitante pode gravar (ver `docs/firebase/`).
 
@@ -82,7 +83,7 @@ Sem build, cada `@import` é uma requisição a mais no primeiro carregamento. �
 1. **Regras do banco** — o código não substitui regras. Proposta pronta em `docs/firebase/database.rules.proposta.json`.
 2. **Leitura dos flashcards pelo aluno** — a tela ainda baixa todas as sessões e todos os cards e filtra no navegador (comportamento herdado, mantido para não arriscar dados de produção). Próximo passo: em `pages/flashcards.page.js`, trocar `listSessions()` + `listAllFlashcards()` por uma leitura de `user_sessions/{uid}` seguida das sessões e cards só desses ids. Com isso, a regra de leitura de `meeting_sessions` e `flashcards` pode ficar restrita a quem participou.
 3. **Contagem de cards na lista de sessões** — `manage-meetings` baixa todos os cards só para contar. Guardar `flashcardCount` na sessão resolve.
-4. **Uma sessão ativa por vez** — `current_session` é um nó único; dois mediadores ao mesmo tempo se sobrescrevem. Evolução: `active_sessions/{codigo}` e o código na URL do tradutor (`circle-translator.html?s=AB12`).
+4. **Uma sessão pública por vez** — `current_session` continua sendo um nó único, agora com posse por aba, versão e confirmação para assumir (ADR-003): não há mais sobrescrita silenciosa nem queda de aba antiga apagando a nova. Várias sessões simultâneas exigem salas por código (`active_sessions/{codigo}` e `circle-translator.html?sala=...`), plano no mesmo ADR.
 5. **Operações privilegiadas no navegador** — criar e excluir contas deveria rodar no backend com o Admin SDK, com papéis em *custom claims*.
 6. **Prompt no navegador** — o backend aceita qualquer prompt. Melhor: rota `/api/translate` que recebe só o texto e monta o prompt no servidor.
 
