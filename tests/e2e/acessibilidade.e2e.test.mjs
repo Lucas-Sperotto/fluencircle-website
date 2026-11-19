@@ -1,6 +1,6 @@
 /**
  * E2E — checagens BÁSICAS de acessibilidade (tests/e2e/support/a11y.mjs) nas
- * oito páginas, nos estados principais, e navegação por teclado em fluxos
+ * nove páginas, nos estados principais, e navegação por teclado em fluxos
  * críticos. Não substitui auditoria WCAG completa nem teste com leitor de tela.
  */
 import { describe, test, before, after } from 'node:test';
@@ -13,12 +13,13 @@ import { startLiveSession } from './support/actions.mjs';
 const PAGES = [
   { path: 'auth.html', as: null, ready: '#login-form' },
   { path: 'circle-translator.html', as: null, ready: '#sessionName:not(:empty)' },
-  { path: 'index.html', as: ACTORS.studentA, ready: '#user-role-badge:not(.hidden)' },
+  { path: 'index.html', as: ACTORS.studentA, ready: '#student-agenda .week-slot' },
   { path: 'flash-cards.html', as: ACTORS.studentA, ready: '#sessions-grid .srs-meeting-card' },
   { path: 'presentation.html', as: ACTORS.mediatorA, ready: '#option-list .meeting-option' },
   { path: 'set-meeting.html', as: ACTORS.mediatorA, ready: '#themes-grid .manage-theme-card' },
   { path: 'manage-meetings.html', as: ACTORS.mediatorA, ready: '.manage-meeting-card' },
   { path: 'admin.html', as: ACTORS.admin, ready: '#users-table-body .user-name-cell' },
+  { path: 'plans.html', as: ACTORS.admin, ready: '#week-agenda .week-slot' },
 ];
 
 describe('E2E [Firebase simulado] acessibilidade básica', () => {
@@ -44,6 +45,8 @@ describe('E2E [Firebase simulado] acessibilidade básica', () => {
       ['set-meeting.html', ACTORS.mediatorA, (p) => p.locator('#open-create-theme-btn').click(), '.new-question-input'],
       ['manage-meetings.html', ACTORS.mediatorA, (p) => p.locator('.manage-meeting-card').first().click(), '.card-editor-row, #cards-editor-container .empty-state'],
       ['admin.html', ACTORS.admin, async (p) => { await p.locator('#users-table-body .user-name-cell').first().waitFor(); await p.locator('#open-create-user-modal-btn').click(); }, '#user-form-modal:not(.hidden)'],
+      ['plans.html', ACTORS.mediatorA, (p) => p.locator('#week-agenda .week-slot').first().click(), '#slot-modal:not(.hidden)'],
+      ['plans.html', ACTORS.admin, async (p) => { await p.locator('#week-agenda .week-slot').first().waitFor(); await p.locator('#tab-plans').click(); await p.locator('#open-create-plan-btn').click(); }, '#plan-modal:not(.hidden)'],
     ];
     for (const [path, as, open, ready] of states) {
       const { page } = await openPage(ctx, path, { as });
