@@ -88,3 +88,16 @@ Comandos executados no branch `feat/planos-agenda-pr2`:
 | `npm run test:rules` (Firebase Emulator) | **Não executado aqui**: `firebase-tools` indisponível no ambiente. Fica para o job `rules-emulator` da CI. |
 
 Nada foi publicado: nem regras nem deploy. Nenhum dado de produção foi lido ou alterado. Todos os testes usam dados sintéticos.
+
+
+## 6. Revisão independente posterior — ChatGPT (19/11/2026)
+
+O Git bundle enviado pelo responsável foi verificado contra a base exata `da51788186261d3c013770ab9dae6a9ebbd8ce9f` e contém os **oito commits originais** da implementação de Claude, encerrando em `3e71fc959827c40f15f9f688dcf471edd03333b1`. O porte mantém as funcionalidades 1–5; os itens 6–10 não foram incorporados, pois representam mudança de produto e de backend, não um merge automático seguro do PR histórico.
+
+**Achado corrigido:** os índices dos horários eram inferidos por sua posição no formulário. Ao apagar/reordenar linhas, uma chave de `weekly_sessions` podia passar a apontar para outra aula. A correção utiliza índices persistidos, em `domain/plans.js`, mantendo buracos no objeto `sessions`; a UI exige confirmação quando um encontro existente tem dia/horário alterado ou é removido. Temas de horários removidos continuam armazenados até uma migração planejada e não são apagados automaticamente.
+
+**Outro ajuste:** requisições de semanas antigas não substituem a agenda da semana atualmente selecionada; o modal captura a chave da semana no momento da abertura.
+
+**Testes executados por ChatGPT na cópia local do código recebido:** `npm test` **103/103**, `npm run test:rules:sim` **79/79**, `npm run rules:check` aprovado, `node scripts/verify-static.mjs` com 9 páginas/35 referências e `node scripts/verify-architecture.mjs` com 52 módulos/0 violações, além de `node --check`. Os 50 E2E do relatório Claude são **relatados**, não reexecutados neste ambiente sem Playwright instalado. Testes do Firebase Emulator e E2E oficiais serão avaliados na CI do PR e seus resultados documentados separadamente.
+
+**Segurança/produção:** regras ativas de produção e backend Render não foram inspecionados; não houve deploy. A mudança não autoriza publicação de regras ou migrações, nem a integração dos módulos inseguros de chat/voz do PR histórico.

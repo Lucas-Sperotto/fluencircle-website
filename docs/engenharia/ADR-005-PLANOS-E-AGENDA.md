@@ -4,7 +4,7 @@
 **Data:** 19/11/2026
 **Origem:** PR #2 (Igor de Andrade Tafarello), reimplementado sobre a arquitetura em camadas
 **Implementação:** Claude
-**Revisão:** pendente (equipe) e aceite humano
+**Revisão:** ChatGPT em 19/11/2026 (código, regras propostas, testes locais e regressões de índices); aceite humano e implantação ainda pendentes
 
 ## Contexto
 
@@ -52,7 +52,7 @@ Problemas da forma original:
   - há testes de domínio, de regras e E2E.
 - **Custo:** cada encontro do aluno é uma leitura separada. Um plano tem no máximo 14 horários.
 - **Limites conhecidos:**
-  - O encontro é identificado pela **posição** do horário no plano. Se o admin remover ou reordenar horários, temas já definidos podem ficar órfãos ou trocar de horário. A tela avisa antes de salvar.
+  - **Integridade de índice (revisão ChatGPT):** o encontro contém o índice original do horário. Ao remover/reordenar linhas na edição, a interface persiste índices estáveis (`sessions` pode ser objeto com lacunas), impedindo que a remoção da primeira linha reaproveite o índice de outra aula. Novos horários recebem índices superiores aos já existentes. Remover um horário ou mudar seu **dia** ainda pode deixar temas de semanas anteriores ou futuras **órfãos**, e a tela exige confirmação. Se os 100 índices possíveis já estiverem ocupados historicamente, a edição falha e exige migração. Não há limpeza automática de agenda legada.
   - Excluir um plano não limpa `users/*/planId`. A home e Acessos mostram "plano não encontrado / Plano removido".
   - Dados que o PR #2 possa ter gravado em produção com a chave de semana antiga **não aparecem**: as chaves são diferentes. Não há migração, porque não sabemos se esses dados existem.
   - Preço e plano são só informativos. Não há cobrança nem bloqueio de acesso por plano.
@@ -61,8 +61,17 @@ Problemas da forma original:
 
 | Camada | Arquivo | O que cobre |
 | --- | --- | --- |
-| Unidade | `tests/unit/plans.test.js` | semana ISO (inclui viradas de ano), agenda, listas como objeto, links, validação |
+| Unidade | `tests/unit/plans.test.js` | semana ISO, agenda, listas como objeto, links, validação e preservação de índices antigos em edições |
 | Regras | `tests/rules/planos.rules.test.mjs` | catálogo, plano próprio/alheio, colisão de prefixo, `planId` inexistente, link `javascript:`, campos extras |
 | E2E | `tests/e2e/planos.e2e.test.mjs` | fluxo completo admin → mediador → aluno; aluno barrado em `plans.html`; a11y das telas novas |
 
 As regras foram testadas no **simulador local**. O Firebase Emulator não estava disponível no ambiente desta implementação. O job `rules-emulator` da CI é a verificação definitiva.
+
+
+### Suplemento de verificação independente — ChatGPT
+
+- Os oito commits originais de Claude foram reconstruídos exatamente a partir do Git bundle enviado pelo responsável, sobre `upstream/main@da51788`.
+- Na inspeção, havia risco de alteração silenciosa do vínculo entre índice do horário e tema quando um horário anterior era removido. Foi aplicado `preservePlanSessionIndices()` e teste de regressão.
+- Foi também adicionada proteção contra respostas antigas de semanas selecionadas anteriormente sobrescreverem a agenda atual.
+- **Validação local reexecutada:** 103/103 testes unitários, 79/79 no simulador de regras, nove páginas HTML/35 referências, 52 módulos JS sem violações estáticas. Firebase Emulator oficial e Playwright permanecem condicionados à CI do Pull Request.
+- Nenhuma regra ativa do Firebase foi lida ou publicada. Este documento não constitui autorização para deploy.
