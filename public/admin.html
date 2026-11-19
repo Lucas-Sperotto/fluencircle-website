@@ -19,7 +19,7 @@
             <div class="page-header page-header--stack">
                 <div class="page-header__titles">
                     <h2>Acessos</h2>
-                    <p>Cadastre, modifique papéis e gerencie as contas de acesso da plataforma</p>
+                    <p>Cadastre, modifique papéis, planos e gerencie as contas de acesso da plataforma</p>
                 </div>
 
                 <div class="page-header__actions">
@@ -30,7 +30,7 @@
                     <div class="admin-search-container">
                         <div class="admin-search-wrapper">
                             <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
-                            <input type="text" id="admin-search-bar" placeholder="Pesquisar usuário por nome ou e-mail..." aria-label="Pesquisar usuário por nome ou e-mail" autocomplete="off">
+                            <input type="text" id="admin-search-bar" placeholder="Pesquisar por nome, e-mail ou plano..." aria-label="Pesquisar usuário por nome, e-mail ou plano" autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -44,6 +44,7 @@
                             <th scope="col">E-mail</th>
                             <th scope="col">ID</th>
                             <th scope="col">Acesso</th>
+                            <th scope="col">Plano</th>
                             <th scope="col" class="users-table__actions-head">Ações</th>
                         </tr>
                     </thead>
@@ -90,6 +91,12 @@
                         <label for="user-role-select">Função no Sistema</label>
                         <!-- Opções geradas a partir de ROLE_LABELS (js/core/roles.js) -->
                         <select id="user-role-select"></select>
+                    </div>
+
+                    <div class="form-item">
+                        <label for="user-plan-select">Plano de assinatura</label>
+                        <!-- Opções geradas a partir de `plans` (js/pages/admin.page.js) -->
+                        <select id="user-plan-select"></select>
                     </div>
 
                     <div class="flexbox">

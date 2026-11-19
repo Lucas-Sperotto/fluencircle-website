@@ -49,15 +49,18 @@ export function sortUsersByName(users, { emailMode = 'local' } = {}) {
  * Filtra por trecho do nome de exibição ou do e-mail, sem diferenciar maiúsculas.
  * @param {UserProfile[]} users
  * @param {string} term texto digitado na busca
- * @param {{ emailMode?: 'local'|'full', fallback?: string }} [options]
+ * @param {{ emailMode?: 'local'|'full', fallback?: string, extraText?: (user: UserProfile) => string }} [options]
+ *        `extraText`: outro texto pesquisável do usuário (ex.: nome do plano, no painel de acessos)
  * @returns {UserProfile[]}
  */
 export function filterUsers(users, term, options = {}) {
   const needle = String(term ?? '').toLowerCase().trim();
   if (!needle) return users;
+  const { extraText, ...nameOptions } = options;
   return users.filter((user) =>
-    displayName(user, options).toLowerCase().includes(needle) ||
-    (user.email || '').toLowerCase().includes(needle));
+    displayName(user, nameOptions).toLowerCase().includes(needle) ||
+    (user.email || '').toLowerCase().includes(needle) ||
+    String(extraText?.(user) ?? '').toLowerCase().includes(needle));
 }
 
 /**
