@@ -13,12 +13,13 @@ Legenda: ✅ permitido · ❌ negado · — não se aplica. Coluna "Teste" apont
 | --- | --- | --- | --- | --- | --- |
 | `auth.html` (login) | ✅ | ✅ | ✅ | ✅ | E: perfis |
 | `circle-translator.html` (tradutor público) | ✅ | ✅ | ✅ | ✅ | E: fluxos, tradutor-contas |
-| `index.html` (início) | ❌ → login | ✅ só atalho de flashcards | ✅ atalhos de equipe | ✅ | E: perfis |
+| `index.html` (início) | ❌ → login | ✅ só atalho de flashcards; agenda "Sua semana" se tiver plano | ✅ atalhos de equipe | ✅ | E: perfis, planos |
 | `flash-cards.html` | ❌ → login | ✅ só os próprios decks | ✅ todos os decks | ✅ todos | E: perfis, privacidade |
 | `presentation.html` (sessão ao vivo) | ❌ → login | ❌ aviso + home | ✅ | ✅ | E: perfis, concorrencia |
 | `set-meeting.html` (temas) | ❌ → login | ❌ aviso + home | ✅ | ✅ | E: perfis, fluxos |
 | `manage-meetings.html` (sessões) | ❌ → login | ❌ aviso + home | ✅ | ✅ | E: perfis, fluxos |
-| `admin.html` (acessos) | ❌ → login | ❌ aviso + home | ❌ aviso + home | ✅ | E: perfis |
+| `admin.html` (acessos) | ❌ → login | ❌ aviso + home | ❌ aviso + home | ✅ (inclui plano do usuário) | E: perfis, planos |
+| `plans.html` (planos e agenda, ADR-005) | ❌ → login | ❌ aviso + home | ✅ agenda; catálogo só leitura | ✅ agenda e catálogo | E: planos, acessibilidade |
 | Conta sem perfil / revogada | login recusado com mensagem | — | — | — | E: perfis |
 
 ## 2. Dados (regras propostas)
@@ -42,6 +43,11 @@ Legenda: ✅ permitido · ❌ negado · — não se aplica. Coluna "Teste" apont
 | `student_reviews/{uid}` próprio | ❌ | ✅ +1 etapa, sessão em que participou | ✅ o próprio | ✅ o próprio | R: rbac |
 | `student_reviews` de outra pessoa | ❌ | ❌ | ❌ | ❌ | R: rbac |
 | `user_sessions/{uid}` | ❌ | ✅ ler o próprio | ✅ gravar (com presença) | ✅ | R: rbac, privacidade |
+| `users/{uid}/planId` | ❌ | ✅ ler o próprio; ❌ gravar | ❌ gravar | ✅ gravar (plano existente) | R: planos |
+| `plans` (catálogo) | ❌ | ❌ | ✅ ler | ✅ ler/gravar | R: planos |
+| `plans/{p}` | ❌ | ✅ ler só o próprio plano | ✅ ler | ✅ ler/gravar | R: planos |
+| `weekly_sessions/{semana}` inteira | ❌ | ❌ | ✅ ler | ✅ ler | R: planos |
+| `weekly_sessions/{semana}/{p}_{dia}_{i}` | ❌ | ✅ ler só encontros do próprio plano (chave inteira conferida) | ✅ ler/gravar (link só https) | ✅ | R: planos |
 | conta sem perfil / revogada | — | ❌ (exceto ler o próprio `users/{uid}` / `deleted_users/{uid}`) | — | — | R: rbac, privacidade |
 
 ## 3. Backend de tradução (Render)

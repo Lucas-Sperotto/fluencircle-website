@@ -12,6 +12,7 @@ export const PAGES = Object.freeze({
   themes: 'set-meeting.html',
   sessions: 'manage-meetings.html',
   admin: 'admin.html',
+  plans: 'plans.html',
   translator: 'circle-translator.html',
 });
 

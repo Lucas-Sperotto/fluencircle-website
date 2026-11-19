@@ -29,6 +29,10 @@ test('filterUsers: busca no nome exibido e no e-mail, sem diferenciar maiúscula
   assert.deepEqual(filterUsers(users, 'LIMA').map((u) => u.uid), ['b']);
   assert.deepEqual(filterUsers(users, ' x.com ').map((u) => u.uid), ['b', 'z', 'a']);
   assert.deepEqual(filterUsers(users, 'usuário').map((u) => u.uid), ['n']);
+  // texto extra (nome do plano no painel de acessos)
+  const planOf = (u) => (u.uid === 'b' ? 'Plano Intensivo' : '');
+  assert.deepEqual(filterUsers(users, 'intensivo', { extraText: planOf }).map((u) => u.uid), ['b']);
+  assert.deepEqual(filterUsers(users, 'intensivo').map((u) => u.uid), []);
   assert.equal(filterUsers(users, '').length, users.length);
 });
 

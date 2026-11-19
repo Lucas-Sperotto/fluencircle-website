@@ -8,7 +8,7 @@
  * Só a camada `services/` deve conhecer estes caminhos.
  */
 export const DB_PATHS = Object.freeze({
-  /** users/{uid} → { firstName, lastName, email, role, createdAt, updatedAt } */
+  /** users/{uid} → { firstName, lastName, email, role, planId?, createdAt, updatedAt } */
   users: 'users',
   /** deleted_users/{uid} → { deletedAt, deletedBy } (lista de bloqueio) */
   deletedUsers: 'deleted_users',
@@ -24,6 +24,10 @@ export const DB_PATHS = Object.freeze({
   reviews: 'student_reviews',
   /** user_sessions/{uid}/{sessionId} → true (índice de presença por aluno) */
   userSessions: 'user_sessions',
+  /** plans/{planId} → { name, price, description?, sessions[{ dayOfWeek, startTime, endTime }], createdAt, updatedAt } */
+  plans: 'plans',
+  /** weekly_sessions/{2026-W47}/{planId_dia_i} → { topicId, topicTitle, questions[], meetLink, updatedAt } */
+  weeklySessions: 'weekly_sessions',
 });
 
 /**

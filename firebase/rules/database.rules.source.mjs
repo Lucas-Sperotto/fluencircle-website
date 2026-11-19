@@ -72,6 +72,15 @@ const noOtherFields = { $other: { '.validate': false } };
 
 const validate = (expression) => ({ '.validate': expression });
 
+/** Horário local "HH:MM" (24 h). */
+const clockTime = "newData.isString() && newData.val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)";
+
+/** Id de plano (formato dos ids do push()); o mesmo de domain/plans.js. */
+const planIdFormat = 'newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,64}$/)';
+
+/** Plano da conta autenticada (string vazia se não houver). */
+const myPlan = "root.child('users').child(auth.uid).child('planId').val()";
+
 // ---------------------------------------------------------------------------
 // Árvore de regras
 // ---------------------------------------------------------------------------
@@ -97,9 +106,63 @@ export function buildRules() {
           lastName: validate(text(80)),
           email: validate(email),
           role: validate("newData.val() === 'student' || newData.val() === 'mediator' || newData.val() === 'admin'"),
+          // Plano contratado (PR #2). Precisa existir em `plans`; remover = gravar null.
+          planId: validate(`${planIdFormat} && root.child('plans').child(newData.val()).exists()`),
           createdAt: validate(isoTimestamp),
           updatedAt: validate(isoTimestamp),
           ...noOtherFields,
+        },
+      },
+
+      // Planos de assinatura (PR #2; ADR-005). A equipe lê o catálogo; cada
+      // pessoa lê SÓ o próprio plano (agenda da home). Só o admin cria e edita.
+      plans: {
+        '.read': isStaff,
+        $planId: {
+          '.read': `(${hasProfile} && ${myPlan} === $planId)`,
+          '.write': isAdmin,
+          '.validate': "newData.hasChildren(['name', 'price', 'sessions']) && $planId.matches(/^[A-Za-z0-9_-]{1,64}$/)",
+          name: validate(text(80, 1)),
+          description: validate(text(300)),
+          price: validate('newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000'),
+          sessions: {
+            $index: {
+              '.validate': "$index.matches(/^[0-9]{1,2}$/) && newData.hasChildren(['dayOfWeek', 'startTime', 'endTime'])",
+              dayOfWeek: validate('newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 6'),
+              startTime: validate(clockTime),
+              endTime: validate(clockTime),
+              ...noOtherFields,
+            },
+          },
+          createdAt: validate(isoTimestamp),
+          updatedAt: validate(isoTimestamp),
+          ...noOtherFields,
+        },
+      },
+
+      // Agenda da semana (PR #2; ADR-005): weekly_sessions/{2026-W47}/{planId_dia_i}.
+      // A equipe define tema e link de cada encontro. O participante lê só os
+      // encontros do PRÓPRIO plano, um a um (a chave é "<planId>_<dia>_<i>").
+      // Tema e perguntas são copiados aqui porque o aluno não lê `meetings`.
+      weekly_sessions: {
+        '.read': isStaff,
+        $weekKey: {
+          '.validate': '$weekKey.matches(/^[0-9]{4}-W[0-9]{2}$/)',
+          $slotKey: {
+            '.read': `(${hasProfile} && root.child('users').child(auth.uid).child('planId').isString() && $slotKey.beginsWith(${myPlan} + '_')`
+              // o resto da chave tem de ser só "<dia>_<i>": impede que o plano "x" leia o plano "x_y"
+              + ` && $slotKey.replace(${myPlan} + '_', '').matches(/^[0-6]_[0-9]{1,2}$/))`,
+            '.write': isStaff,
+            '.validate': "newData.hasChildren(['topicTitle', 'updatedAt']) && $slotKey.matches(/^[A-Za-z0-9_-]+_[0-6]_[0-9]{1,2}$/)",
+            topicId: validate(text(128)),
+            topicTitle: validate(text(200, 1)),
+            questions: {
+              $index: validate(`$index.matches(/^[0-9]+$/) && ${text(500, 1)}`),
+            },
+            meetLink: validate('newData.isString() && newData.val().length <= 500 && newData.val().matches(/^https:[/][/][A-Za-z0-9._~:/?#@!$&()*+,;=%-]+$/)'),
+            updatedAt: validate(isoTimestamp),
+            ...noOtherFields,
+          },
         },
       },
 

@@ -50,7 +50,7 @@ Por que assim:
 Os nomes dos nós foram mantidos (os dados de produção dependem deles). Repare que `meetings` guarda os **temas** e `meeting_sessions` as **sessões realizadas**.
 
 ```
-users/{uid}                        firstName, lastName, email, role, createdAt, updatedAt
+users/{uid}                        firstName, lastName, email, role, planId?, createdAt, updatedAt
 deleted_users/{uid}                deletedAt, deletedBy            (lista de bloqueio)
 meetings/{temaId}                  topic, questions[], createdAt, updatedAt
 meeting_sessions/{sessaoId}        templateId, topic, startedAt, mediatorEmail,
@@ -60,11 +60,16 @@ current_session                    sessionId, topic, startedAt, presenterId, ver
 flashcards/{sessaoId}/{cardId}     front, back, topic, sessionId, createdAt
 student_reviews/{uid}/{sessaoId}   stage, lastReviewedAt, stage1CompletedAt...
 user_sessions/{uid}/{sessaoId}     { topic, startedAt }            (índice de presença; antigo: true)
+plans/{planoId}                    name, price, description?, sessions[{dayOfWeek, startTime, endTime}]  (ADR-005)
+weekly_sessions/{AAAA-Www}/{planoId_dia_i}
+                                   topicId, topicTitle, questions[], meetLink?, updatedAt  (agenda; ADR-005)
 ```
 
 ## Fluxos principais
 
 **Sessão ao vivo** (`pages/presentation/`): o mediador escolhe um tema (`theme-picker.js`) → "Iniciar" pergunta antes de assumir o tradutor se outra tela estiver no ar, grava a sessão e publica `current_session` por transação com posse desta aba; o `onDisconnect` apaga só a presença desta aba (`live/{presenterId}`), então uma aba antiga não derruba a nova (ADR-003) → os slides (`slides.js`) avançam com setas, espaço ou clique → presença (`attendance.js`) grava na sessão e em `user_sessions` numa escrita atômica → o tradutor (`translator-modal.js`) traduz pelo backend e salva o par como flashcard → "Encerrar" despublica.
+
+**Planos e agenda** (`pages/plans.page.js`, `pages/home.page.js`, ADR-005; vindo do PR #2): o admin cria planos com horários semanais e vincula cada pessoa a um plano em Acessos → a equipe escolhe, para cada horário de cada semana ISO, um tema (título e perguntas copiados) e o link https da chamada → na home, quem tem plano vê "Sua semana" lendo só o próprio plano e os próprios encontros.
 
 **Tradutor público** (`pages/circle-translator.page.js`): observa `current_session` em tempo real (só sessões no ar); traduz sem login. Salvar a tradução como card depende do ambiente (`config/environment.js`): no Emulator não tenta; em produção tenta a escrita direta herdada e, se as regras negarem (a proposta nega escrita anônima), avisa que o card não foi salvo. O destino é o backend controlado descrito em `docs/backend/CONTRATO_BACKEND.md` (não implementado).
 

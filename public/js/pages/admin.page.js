@@ -6,7 +6,9 @@
  */
 import { initProtectedPage } from './shared/page-setup.js';
 import { listUsers, createUserAccount, updateUserProfile, revokeUser } from '../services/users.service.js';
+import { listPlans } from '../services/plans.service.js';
 import { displayName, sortUsersByName, filterUsers, avatarInitial } from '../domain/users.js';
+import { formatPlanPrice } from '../domain/plans.js';
 import { ROLES, ROLE_LABELS, roleLabel, normalizeRole } from '../core/roles.js';
 import { sessionCache } from '../core/session-cache.js';
 import { MIN_PASSWORD_LENGTH } from '../config/app.config.js';
@@ -26,6 +28,7 @@ const emailInput = byId('user-email-input');
 const passwordInput = byId('user-password-input');
 const passwordField = byId('password-field-container');
 const roleSelect = byId('user-role-select');
+const planSelect = byId('user-plan-select');
 const saveButton = byId('save-user-btn');
 
 /** Preenchido na inicialização. */
@@ -34,17 +37,32 @@ let currentAdmin = null;
 let allUsers = [];
 /** uid em edição; null quando é um cadastro novo. */
 let editingUid = null;
+/** Planos por id (PR #2): nomes na tabela, busca e opções do formulário. */
+let plansById = {};
 
 const UID_PREVIEW_LENGTH = 14;
 
 function messageRow(text, { error = false } = {}) {
-  return h('tr', null, h('td', { colspan: '5', class: `users-table__message${error ? ' users-table__message--error' : ''}` }, text));
+  return h('tr', null, h('td', { colspan: '6', class: `users-table__message${error ? ' users-table__message--error' : ''}` }, text));
+}
+
+/** Nome do plano do usuário ('' sem plano; aviso se o plano foi apagado). */
+function planName(user) {
+  if (!user.planId) return '';
+  return plansById[user.planId]?.name ?? 'Plano removido';
 }
 
 async function loadUsers() {
   replaceContent(tableBody, messageRow('Carregando perfis...'));
   try {
-    allUsers = await listUsers();
+    // Sem os planos a tela continua útil: a coluna mostra só "—".
+    const [users, plans] = await Promise.all([listUsers(), listPlans().catch((error) => {
+      console.error('Erro ao carregar planos:', error);
+      return {};
+    })]);
+    allUsers = users;
+    plansById = plans;
+    renderPlanOptions();
     renderTable();
   } catch (error) {
     console.error('Erro ao carregar usuários:', error);
@@ -57,7 +75,7 @@ function renderTable() {
     replaceContent(tableBody, messageRow('Nenhum usuário cadastrado.'));
     return;
   }
-  const visible = filterUsers(sortUsersByName(allUsers), searchInput.value);
+  const visible = filterUsers(sortUsersByName(allUsers), searchInput.value, { extraText: planName });
   if (visible.length === 0) {
     replaceContent(tableBody, messageRow('Nenhum usuário encontrado.'));
     return;
@@ -81,6 +99,9 @@ function renderUserRow(user) {
     h('td', null, user.email || '—'),
     h('td', { class: 'user-uid-cell', title: user.uid }, uidPreview),
     h('td', null, h('span', { class: `badge-${role}` }, roleLabel(role))),
+    h('td', null, planName(user)
+      ? h('span', { class: 'badge-plan' }, icon('fa-crown'), ' ', planName(user))
+      : h('span', { class: 'badge-no-plan' }, '—')),
     // O ' ' entre os botões mantém o espaçamento do layout original.
     h('td', { class: 'user-actions-cell' }, editButton, ' ', deleteButton));
 }
@@ -88,6 +109,14 @@ function renderUserRow(user) {
 /** Opções do papel geradas a partir de ROLE_LABELS (antes o texto divergia: "Participante" x "Aluno"). */
 function renderRoleOptions() {
   replaceContent(roleSelect, [ROLES.STUDENT, ROLES.MEDIATOR, ROLES.ADMIN].map((role) => h('option', { value: role }, ROLE_LABELS[role])));
+}
+
+/** Opções do plano a partir de `plans`, em ordem alfabética, com o preço mensal. */
+function renderPlanOptions() {
+  const options = Object.entries(plansById)
+    .sort(([, a], [, b]) => String(a.name).localeCompare(String(b.name), 'pt-BR'))
+    .map(([id, plan]) => h('option', { value: id }, `${plan.name} (${formatPlanPrice(plan.price)}/mês)`));
+  replaceContent(planSelect, h('option', { value: '' }, 'Sem plano vinculado'), options);
 }
 
 function openModal() {
@@ -118,6 +147,8 @@ function openEditModal(user) {
   emailInput.value = user.email || '';
   emailInput.disabled = true; // trocar e-mail no Firebase Auth exige reautenticação
   roleSelect.value = normalizeRole(user.role);
+  // plano apagado depois de vinculado: o formulário volta a "sem plano"
+  planSelect.value = user.planId && plansById[user.planId] ? user.planId : '';
   passwordField.classList.add('hidden');
   passwordInput.required = false;
   openModal();
@@ -129,6 +160,7 @@ async function saveUser(event) {
     firstName: firstNameInput.value.trim(),
     lastName: lastNameInput.value.trim(),
     role: roleSelect.value,
+    planId: planSelect.value,
   };
 
   if (!editingUid && passwordInput.value.length < MIN_PASSWORD_LENGTH) {

@@ -38,6 +38,10 @@ para **produção** e o que é **melhoria futura**. Redigido originalmente por C
 7. **Conta órfã** ainda é possível se o perfil falhar **e** o desfazer também falhar (o admin recebe o uid).
 8. **Servir por IP de rede local** (ex.: `192.168…`) seleciona produção (decisão consciente; documentada).
 9. O SDK do Firebase no navegador continua na **10.8.0**; atualizar exige E2E e Emulator verdes.
+10. **Agenda por posição do horário** (ADR-005): remover ou reordenar horários de um plano pode desalinhar temas já
+    agendados (a tela avisa); excluir um plano não limpa `users/*/planId`. Plano é só informativo (sem cobrança).
+11. **PR #2 parcialmente portado:** salas simultâneas, chat/Fluêncio e voz WebRTC não entraram — ver
+    `docs/auditorias/PR2_AVALIACAO_E_PORTE.md`.
 
 ## 4. Decisões humanas em aberto
 
@@ -48,6 +52,8 @@ para **produção** e o que é **melhoria futura**. Redigido originalmente por C
 4. Aprovar (ou não) o risco de mediadores verem e-mails de alunos.
 5. Quando migrar para salas por código e comunicar a mudança de QR.
 6. Rotação da credencial histórica (Issue #6).
+7. Salas simultâneas com entrada do aluno, chat e voz (PR #2): aprovar o desenho proposto em
+   `docs/auditorias/PR2_AVALIACAO_E_PORTE.md` §4 antes de implementar.
 
 ## 5. Itens que **não** foram feitos de propósito
 

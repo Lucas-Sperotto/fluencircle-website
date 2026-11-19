@@ -1,0 +1,337 @@
+/**
+ * pages/plans.css
+ * Planos e agenda semanal (PR #2, ADR-005): plans.html e a seção
+ * "Sua semana" da home. Cores e medidas vêm de base/tokens.css.
+ */
+
+/* Abas Agenda / Planos */
+.plans-tabs {
+    display: inline-flex;
+    gap: 6px;
+    padding: 4px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+}
+
+.plans-tab {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+.plans-tab.active {
+    background: rgba(43, 253, 120, 0.12);
+    color: var(--third-color);
+}
+
+.plans-tab:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+.plans-panel {
+    width: 100%;
+}
+
+.plans-panel__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+/* Navegação entre semanas */
+.week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.week-nav__btn {
+    width: 40px;
+    padding: 0;
+}
+
+.week-nav__label {
+    min-width: 200px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Lista de encontros da semana */
+.week-agenda {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.week-slot {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.week-slot[role="button"] {
+    cursor: pointer;
+}
+
+.week-slot[role="button"]:hover,
+.week-slot[role="button"]:focus-visible {
+    border-color: var(--border-hover);
+    background: var(--surface-hover);
+}
+
+.week-slot--empty .week-slot__topic {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.week-slot__day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    border-right: 1px solid var(--border-color);
+    padding-right: 14px;
+}
+
+.week-slot__weekday {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.week-slot__monthday {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.week-slot__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.week-slot__topic {
+    font-weight: 600;
+}
+
+.week-slot__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.week-slot__link {
+    color: var(--accent-blue);
+}
+
+.week-slot__join {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    background: var(--third-color);
+    color: var(--primary-color);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.week-slot__questions summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--accent-blue);
+}
+
+.week-slot__questions ol {
+    margin: 8px 0 0 18px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Texto só para leitores de tela (o dia já aparece na coluna da esquerda, oculta para eles) */
+.week-slot__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.week-slot p,
+.week-slot ol,
+.plan-card p,
+.plan-card h3,
+.student-week__header h2,
+.student-week__header p {
+    margin: 0;
+}
+
+/* Catálogo de planos */
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    width: 100%;
+}
+
+.plan-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+}
+
+.plan-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.plan-card__actions {
+    display: flex;
+    gap: 6px;
+}
+
+.plan-card__price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--third-color);
+}
+
+.plan-card__price span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
+.plan-card__description,
+.plan-card__schedule {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Formulário de plano */
+.plans-select {
+    height: 44px;
+    border-radius: 50px;
+    background: var(--surface-card);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0 16px;
+    font-size: 0.95rem;
+}
+
+.plan-schedule {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.plan-schedule legend {
+    padding: 0 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.schedule-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.schedule-row .schedule-row__day {
+    flex: 1;
+    min-width: 0;
+}
+
+.schedule-row input[type="time"] {
+    height: 44px;
+    border-radius: 12px;
+    background: var(--surface-card);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0 8px;
+    color-scheme: dark;
+}
+
+.plans-empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-secondary);
+}
+
+.plans-empty__hint {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Home: "Sua semana" */
+.student-week {
+    width: 100%;
+    max-width: 720px;
+    margin-top: 36px;
+}
+
+.student-week__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.student-week__header h2 {
+    font-size: 1.2rem;
+}
+
+.student-week__subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .schedule-row {
+        flex-wrap: wrap;
+    }
+
+    .schedule-row .schedule-row__day {
+        flex-basis: 100%;
+    }
+
+    .week-slot {
+        padding: 10px 12px;
+    }
+}

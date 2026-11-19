@@ -54,10 +54,10 @@ export async function listStudents() {
  * Limitação conhecida: por rodar no navegador, exige o cadastro público por
  * e-mail habilitado no projeto. Solução definitiva: backend com Admin SDK.
  *
- * @param {{ firstName: string, lastName: string, email: string, password: string, role: string }} data
+ * @param {{ firstName: string, lastName: string, email: string, password: string, role: string, planId?: string }} data
  * @returns {Promise<string>} uid da nova conta
  */
-export async function createUserAccount({ firstName, lastName, email, password, role }) {
+export async function createUserAccount({ firstName, lastName, email, password, role, planId = '' }) {
   const secondaryAuth = getSecondaryAuth();
   return createAccountWithRollback({
     createAuthUser: async () => (await createUserWithEmailAndPassword(secondaryAuth, email, password)).user,
@@ -66,6 +66,7 @@ export async function createUserAccount({ firstName, lastName, email, password, 
       lastName,
       email,
       role,
+      ...(planId ? { planId } : {}),
       createdAt: nowIso(),
     }),
     deleteAuthUser: (user) => deleteUser(user),
@@ -74,15 +75,17 @@ export async function createUserAccount({ firstName, lastName, email, password, 
 }
 
 /**
- * Atualiza nome e papel. O e-mail não muda aqui: no Firebase Auth isso exige reautenticação.
+ * Atualiza nome, papel e plano. O e-mail não muda aqui: no Firebase Auth isso exige reautenticação.
  * @param {string} uid
- * @param {{ firstName: string, lastName: string, role: string }} data
+ * @param {{ firstName: string, lastName: string, role: string, planId?: string }} data
+ *        `planId` vazio desvincula o plano
  */
-export function updateUserProfile(uid, { firstName, lastName, role }) {
+export function updateUserProfile(uid, { firstName, lastName, role, planId = '' }) {
   return update(ref(database, dbPath(DB_PATHS.users, uid)), {
     firstName,
     lastName,
     role,
+    planId: planId || null,
     updatedAt: nowIso(),
   });
 }
