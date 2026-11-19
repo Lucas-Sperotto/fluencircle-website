@@ -2,7 +2,7 @@
  * @file Revisão espaçada (SRS) dos flashcards: marcos de 1, 7 e 30 dias.
  *
  * Funções puras: não acessam DOM nem Firebase, então podem ser testadas
- * isoladamente (ver tests/unit/srs.test.mjs).
+ * isoladamente (ver tests/unit/srs.test.js).
  *
  * Regra de negócio:
  * - Etapa 0 → 1: liberada 24 h depois do início da sessão (`startedAt`).
