@@ -1,0 +1,38 @@
+name: Temporary dependency lockfile generation for student delivery
+
+on:
+  push:
+    branches: [audit/create-student-lockfile]
+
+permissions:
+  contents: write
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout full project and enable push
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate lockfile without running package scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin chore/student-reproducible-deps
+          git switch -C chore/student-reproducible-deps origin/chore/student-reproducible-deps
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          test -s package-lock.json
+          node -e "const p=require('./package-lock.json'); if(p.lockfileVersion<3) throw new Error('lockfile v3 required'); console.log('lockfileVersion',p.lockfileVersion,'entries',Object.keys(p.packages).length)"
+          git add package-lock.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build(deps): pin npm dependency graph for student reproducibility"
+          git push origin HEAD:refs/heads/chore/student-reproducible-deps
+          echo "Committed only the generated lockfile, no deployment."
