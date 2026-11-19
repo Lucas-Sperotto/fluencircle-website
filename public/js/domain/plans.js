@@ -117,9 +117,12 @@ export function planSessions(plan) {
     }));
 }
 
-/** Link de chamada que pode virar `<a href>`: só https, sem espaços. */
+/**
+ * Link de chamada que pode virar `<a href>`: só https e só caracteres de URL
+ * sem aspas nem espaços (o mesmo padrão das regras do banco).
+ */
 export function isSafeMeetLink(url) {
-  return typeof url === 'string' && url.length <= PLAN_LIMITS.meetLinkMax && /^https:\/\/[^\s"'<>]+$/.test(url);
+  return typeof url === 'string' && url.length <= PLAN_LIMITS.meetLinkMax && /^https:\/\/[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+$/.test(url);
 }
 
 /**
