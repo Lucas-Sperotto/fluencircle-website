@@ -10,7 +10,8 @@ Este documento atribui **funções de assistência**, não forja autoria de comm
 | #4 | Claude (documento original), responsável (upload), ChatGPT (checksum) | PDF binário original de 15 páginas e metadata | Merge na main |
 | #16 | ChatGPT | Mutação atômica de presença/sessão, UX de publicação, predicado de tradução; 9 novos testes | Merge na main; CI offline verde |
 | #17 | ChatGPT | Auditoria independente de segurança/dados e runbook NO-GO | Merge na main |
-| PR desta documentação | ChatGPT | Requisitos, manual, Mermaid, ADR, prompt Gemini, README e ledger | Merge sujeito a CI e revisão |
+| #18 | ChatGPT | Requisitos, manual, nove diagramas Mermaid, ADR, prompt Gemini, README e ledger | **Merge na main; CI 44430941350 aprovada** |
+| #19 | ChatGPT | Checagem de camadas e sinks HTML em CI e documentação | **Merge na main; CI 44431326113 aprovada** |
 | Futuro | Gemini | Revisão independente com evidências no PR próprio | **Não executado** |
 
 ## Compromissos
