@@ -15,6 +15,7 @@ import { h, icon, byId } from './dom.js';
 import { sessionCache } from '../core/session-cache.js';
 import { ROLES, roleLabel, normalizeRole, isStaff } from '../core/roles.js';
 import { PAGES } from '../core/navigation.js';
+import { mountEnvironmentBadge } from './environment-badge.js';
 
 /**
  * Itens da barra lateral. `page` é comparado com `data-page` do `<body>`
@@ -125,6 +126,7 @@ export function mountAppShell() {
   if (byId('sidebar')) return;
   const currentPage = document.body.dataset.page || '';
   document.body.prepend(renderHeader(), renderSidebar(currentPage));
+  mountEnvironmentBadge();
 
   const cachedEmail = sessionCache.getEmail();
   if (cachedEmail) byId('user-email').textContent = cachedEmail;

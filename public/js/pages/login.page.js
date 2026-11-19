@@ -8,6 +8,9 @@ import { PAGES, goTo } from '../core/navigation.js';
 import { showToast } from '../ui/toast.js';
 import { setPageLoading } from '../ui/loader.js';
 import { byId } from '../ui/dom.js';
+import { mountEnvironmentBadge } from '../ui/environment-badge.js';
+
+mountEnvironmentBadge();
 
 const form = byId('login-form');
 const submitButton = byId('login-btn');
