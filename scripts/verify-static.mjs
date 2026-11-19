@@ -31,6 +31,7 @@ for (const htmlName of entries) {
 for (const filename of [
   'docs/firebase/database.rules.proposta.json',
   'docs/firebase/firebase.json.exemplo',
+  'firebase.emulator.json',
   'package.json',
 ]) {
   JSON.parse(readFileSync(join(repoRoot, filename), 'utf8'));
