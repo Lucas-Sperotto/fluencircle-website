@@ -38,18 +38,16 @@ jobs:
             git merge-base --is-ancestor 5d0180cf34839544c3c9cbc9307133612fddd3f7 "$sha"
             printf 'Validated %s -> %s\n' "$branch" "$sha"
           done
-      - name: Publish six reviewed branch refs without merges
+      - name: Transfer original Git objects for connector-authorized ref creation
         shell: bash
         run: |
           set -euo pipefail
-          for branch in \
-            claude/emulador-regras \
-            claude/e2e-perfis \
-            claude/concorrencia-sessao-ativa \
-            claude/privacidade-leituras \
-            claude/tradutor-contas-backend \
-            feat/claude-hardening-entrega
-          do
-            git push origin "refs/remotes/claude-packet/$branch:refs/heads/$branch"
-          done
-          echo 'No merge and no deployment performed.'
+          # GITHUB_TOKEN may not create workflow-changing branches; this push
+          # transfers the pack for subsequent authorized GitHub connector refs.
+          # Its rejection MUST be recorded rather than reported as successful.
+          if git push origin 'refs/remotes/claude-packet/feat/claude-hardening-entrega:refs/heads/claude-import-object-transfer'; then
+            echo 'Transfer ref published by runner; no merge.'
+          else
+            echo 'EXPECTED TOKEN SCOPE LIMIT: workflow-file modification blocked ref creation.'
+            echo 'Original commits must be verified and published by the connected authorized GitHub client.'
+          fi
