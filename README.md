@@ -38,6 +38,7 @@ ficam sem dados. Detalhes e contas de demonstração: [`docs/firebase/LEIA-ME.md
 npm test                          # unitários (domain/, serviços puros, configuração, simulador) — sem rede
 npm run test:rules                # regras RTDB no Firebase Emulator (prova oficial; precisa de npm install + Java 21)
 npm run test:rules:sim            # mesma matriz no simulador local (pré-verificação offline; não é o Emulator)
+npm run test:e2e                  # E2E e acessibilidade básica (Playwright; Firebase simulado com as regras propostas)
 npm run rules:check               # JSON das regras em sincronia com a fonte comentada
 node scripts/verify-static.mjs    # arquivos locais e JSON de configuração
 node scripts/verify-architecture.mjs  # camadas e sinks HTML proibidos
