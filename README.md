@@ -32,7 +32,8 @@ O site aponta para o projeto Firebase `fluentech-1e18a` (configuração em `publ
 ## Testes
 
 ```bash
-npm test             # testes unitários da camada domain/ (Node 20+, sem dependências)
+npm test             # testes unitários de domain/ e mapas de serviços (Node 20+, sem dependências)
+node scripts/verify-static.mjs   # verifica arquivos locais e propostas JSON
 ```
 
 ## Estrutura
@@ -67,17 +68,15 @@ Detalhes e diagrama em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
 5. **Sem `style=` no HTML e sem estilos montados em strings no JS.** Estilos novos vão no arquivo CSS da seção; a ordem dos `@import` em `main.css` importa.
 6. Comentários e textos em português; nomes no código em inglês.
 
-## Deploy
+## Publicação: BLOQUEADA até auditoria de segurança
 
-```bash
-firebase deploy --only hosting
-```
+**NÃO execute deploy em produção a partir deste snapshot.** O merge na `main` preserva um baseline para engenharia e auditoria, não uma release. As regras reais do Firebase ainda precisam ser exportadas/testadas; o tradutor público, o backend Render e sessões simultâneas possuem riscos abertos. Consulte [gates de implantação](docs/operacao/SEGURANCA_E_DEPLOY.md) e [auditoria independente](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md).
 
-Recomendado: versionar `database.rules.json` e `firebase.json` (veja `docs/firebase/LEIA-ME.md`) e publicar as regras junto: `firebase deploy --only hosting,database`.
+Ambientes de desenvolvimento devem utilizar **projeto Firebase de staging ou Emulator isolado**. A CI executa somente verificações offline; ela não publica hosting, regras ou funções.
 
 ## Segurança
 
-O navegador não é barreira de segurança: esconder botões por papel é só conveniência. A proteção dos dados depende das **regras do Realtime Database**. Ações pendentes (revogar uma credencial que ficou no histórico do Git, publicar regras, ajustar o backend) estão em [`docs/AUDITORIA.md`](docs/AUDITORIA.md).
+O navegador não é barreira de segurança: esconder botões por papel é só conveniência. A proteção dos dados depende das **regras do Realtime Database**. Ações pendentes (credencial no histórico, regras reais, tradução pública, backend, privacidade e concorrência) estão no [relatório independente](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md). O arquivo [`docs/AUDITORIA.md`](docs/AUDITORIA.md) é o relato **histórico da reorganização do Claude** e não substitui a revisão independente.
 
 ## Documentação
 
@@ -85,6 +84,14 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 - [`docs/AUDITORIA.md`](docs/AUDITORIA.md) — achados da auditoria e o que foi corrigido
 - [`docs/MIGRACAO.md`](docs/MIGRACAO.md) — de onde veio cada arquivo e o que mudou de comportamento
 - [`docs/firebase/LEIA-ME.md`](docs/firebase/LEIA-ME.md) — regras do banco e configuração do hosting
+- [`docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md`](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md) — análise independente, riscos P0/P1 e critérios GO/NO-GO
+- [`docs/operacao/SEGURANCA_E_DEPLOY.md`](docs/operacao/SEGURANCA_E_DEPLOY.md) — staging, segredos, regras, backup e autorização de release
+- [`docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md`](docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md) — requisitos e casos de uso por papel
+- [`docs/usuario/MANUAL_DO_USUARIO.md`](docs/usuario/MANUAL_DO_USUARIO.md) — guia para visitante, aluno, mediador e administrador
+- [`docs/diagramas/DIAGRAMAS.md`](docs/diagramas/DIAGRAMAS.md) — 9 diagramas Mermaid (AS-IS e TO-BE)
+- [`docs/engenharia/ADR-001-ARQUITETURA.md`](docs/engenharia/ADR-001-ARQUITETURA.md) — decisão de preservar módulos sem build
+- [`docs/processo/CHANGELOG_IA.md`](docs/processo/CHANGELOG_IA.md) — autoria atribuída e trilha de PRs por IA
+- [`prompts/GEMINI_REVISAO_INDEPENDENTE.md`](prompts/GEMINI_REVISAO_INDEPENDENTE.md) — roteiro de revisão cruzada independente
 
 ## Licença
 

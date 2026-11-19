@@ -1,6 +1,6 @@
 # Rastreabilidade de contribuições de IA — FluenCircle
 
-**Status:** processo proposto, a ser aprovado pelo responsável do fork. **Base inicial:** `fluencircle/fluencircle-website@dd8a9d8560d6b7fb8d93e7c259cef05f3b799e42`.
+**Status:** processo em uso no fork, com PRs documentados; sujeito a revisão humana. **Base inicial:** `fluencircle/fluencircle-website@dd8a9d8560d6b7fb8d93e7c259cef05f3b799e42`.
 
 ## Princípios
 - Cada tarefa nasce de uma Issue; cada mudança passa por branch, commits, PR, revisão e decisão de integração.
@@ -54,8 +54,8 @@ Aprovação humana: pendente/aprovada + referência
 ## Inventário inicial
 | ID | Origem | Material | Verificação | Estado |
 | --- | --- | --- | --- | --- |
-| CL-001 | Claude | `fluencircle-reorganizacao.diff`, ZIP reorganizado, PDF de auditoria fornecidos pelo responsável | Não integrados ao fork até confirmação de PR; afirmações do relatório precisam de reprodução independente | Pendente |
-| CG-001 | ChatGPT | Auditoria e pacote preliminar de documentação fornecidos em 18/11/2026 | Revisão estática e testes unitários locais relatados no pacote; integração e CI ainda pendentes | Pendente |
+| CL-001 | Claude | ZIP, patch e PDF de auditoria | Código integrado no PR #2 e PDF original no PR #4; alegações E2E históricas ainda não reproduzidas | **Integrado como baseline, não aprovado para deploy** |
+| CG-001 | ChatGPT | Validação do ZIP e CI (#3); reparos de dados/UX (#16); auditoria própria (#17) | 25/25 testes unitários, GitHub Actions aprovadas; testes externos pendentes | **Integrado, sujeito a testes no Emulator** |
 | GM-001 | Gemini | Revisão cruzada independente, planejada | Nenhum resultado ainda | Planejada |
 | CG-002 | ChatGPT | Revisão final, planejada | Depende de código e evidências novos | Planejada |
 

@@ -1,4 +1,6 @@
-# Auditoria técnica — situação após a reorganização
+# Auditoria técnica — registro histórico da reorganização Claude
+
+> **Arquivo histórico, não parecer atual.** Este documento é a declaração de correções e testes reportados na entrega de Claude, sobre o upstream `dd8a9d8` e arquitetura A. O PDF original está em `docs/auditorias/Auditoria técnica do fluencircle-website.pdf`. Para verificações reproduzidas após a integração, riscos em aberto e estado atual, veja `docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md` e PR #16. As 79 verificações E2E e 52 capturas aqui mencionadas **não foram reexecutadas** pela auditoria ChatGPT.
 
 Auditoria do commit `dd8a9d8` (21/10/2026) e o que a reorganização para a arquitetura A resolveu. O relatório completo, com evidências por linha, foi entregue à parte; aqui fica o registro para o repositório.
 
