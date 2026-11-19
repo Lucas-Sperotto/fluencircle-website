@@ -15,7 +15,8 @@ Este documento atribui **funções de assistência**, não forja autoria de comm
 | #22 | ChatGPT | Exportador de snapshot pinado e logs para Gemini | Merge na main; workflow de exportação validado |
 | #23 | Gemini (parecer encaminhado) + ChatGPT (normalização/importação) | 9 achados e 4 artefatos de auditoria | **Merge na main; CI 44514494925 aprovada**; sem testes dinâmicos pelo Gemini |
 | #26 | ChatGPT (correções) com achados de Gemini | SRS inválido e datas, CSP regional, contenção de regra RTDB **somente em proposta**, relatório final | **Merge na main; CI 44515234156: 30/30 testes** |
-| Futuro | Responsável + IAs revisoras | Firebase Emulator, backend Render, E2E, credencial histórica e release | **Aberto; NO-GO produção** |
+| (Issue #28, PRs Draft a abrir) | Claude (implementação; plano do ChatGPT) | Emulator e ambiente isolado, regras geradas e testadas (simulador), concorrência da sessão ativa, leitura mínima/PII, tradutor e contas, CI em 3 jobs, E2E + a11y, documentação de entrega | **Não integrado**; evidências em `docs/auditorias/CLAUDE_HANDOFF_FINAL.md`; Emulator e CI pendentes; revisão ChatGPT pendente |
+| Futuro | Responsável + IAs revisoras | Regras ativas, backend Render, credencial histórica, staging e release | **Aberto; NO-GO produção** |
 
 ## Compromissos
 
