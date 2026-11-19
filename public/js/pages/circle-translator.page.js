@@ -13,6 +13,7 @@ import { watchCurrentSession } from '../services/sessions.service.js';
 import { addFlashcard } from '../services/flashcards.service.js';
 import { translateText } from '../services/translate.service.js';
 import { TRANSLATOR_MAX_LENGTH } from '../config/app.config.js';
+import { canSaveTranslationToSession } from '../domain/active-session.js';
 import { byId } from '../ui/dom.js';
 
 /** Tema gravado no flashcard quando a sessão ativa não informa um. */
@@ -53,18 +54,24 @@ async function handleTranslate() {
     return;
   }
 
+  // Salvar o id da aula antes de aguardar o backend assíncrono.
+  const originSession = activeSession;
   translateButton.disabled = true;
   translateButton.textContent = 'Traduzindo...';
   clearStatus();
   try {
     const translation = await translateText(text);
     resultInput.value = translation;
-    if (activeSession && translation) {
-      await addFlashcard(activeSession.sessionId, {
-        front: text,
-        back: translation,
-        topic: activeSession.topic || DEFAULT_TOPIC,
-      });
+    if (originSession && translation) {
+      if (!canSaveTranslationToSession(originSession, activeSession)) {
+        showStatus('A sessão mudou durante a tradução. O texto não foi salvo como flashcard.', 'warning');
+      } else {
+        await addFlashcard(originSession.sessionId, {
+          front: text,
+          back: translation,
+          topic: originSession.topic || DEFAULT_TOPIC,
+        });
+      }
     }
   } catch (error) {
     console.error('Erro no processo:', error);

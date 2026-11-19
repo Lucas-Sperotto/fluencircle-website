@@ -34,6 +34,10 @@ const state = {
   mediatorEmail: '',
 };
 
+// Evita clique repetido enquanto uma operação assíncrona está em andamento.
+let isStarting = false;
+let isEnding = false;
+
 const slides = createSlideDeck(document.querySelector('.slide'));
 const attendance = createAttendance(() => state.activeSession?.id || '');
 const translator = createTranslatorModal(() => state.activeSession);
@@ -50,6 +54,7 @@ const themePicker = createThemePicker({
 function setStartEnabled(enabled) {
   startButton.classList.toggle('unclickable', !enabled);
   startButton.setAttribute('aria-disabled', String(!enabled));
+  startButton.disabled = !enabled;
 }
 
 function showSessionUI(active) {
@@ -60,7 +65,8 @@ function showSessionUI(active) {
 }
 
 async function startSession() {
-  if (!state.selectedTheme || state.activeSession) return;
+  if (!state.selectedTheme || state.activeSession || isStarting || isEnding) return;
+  isStarting = true;
   const { id: templateId, topic, questions } = state.selectedTheme;
 
   setStartEnabled(false);
@@ -79,34 +85,43 @@ async function startSession() {
     console.error('Erro ao registrar sessão:', error);
     showToast('Falha ao iniciar evento no banco.', 'error');
   } finally {
-    setStartEnabled(true);
+    isStarting = false;
+    setStartEnabled(!state.activeSession && Boolean(state.selectedTheme));
     startButton.textContent = 'Iniciar';
   }
 }
 
 async function endSession() {
-  const confirmed = await confirmDialog({
-    title: 'Encerrar sessão',
-    message: 'Tem certeza de que deseja finalizar esta sessão de conversação?',
-    detail: 'Todos os flashcards criados durante a sessão já estão salvos para os participantes.',
-    confirmText: 'Sim, Encerrar',
-    cancelText: 'Continuar sessão',
-    showCloseButton: true,
-  });
-  if (!confirmed) return;
-
+  if (!state.activeSession || isEnding || isStarting) return;
+  isEnding = true;
   try {
-    await state.unpublish?.();
-  } catch (error) {
-    console.error('Erro ao limpar current_session:', error);
-  }
-  state.activeSession = null;
-  state.unpublish = null;
+    const confirmed = await confirmDialog({
+      title: 'Encerrar sessão',
+      message: 'Tem certeza de que deseja finalizar esta sessão de conversação?',
+      detail: 'Todos os flashcards criados durante a sessão já estão salvos para os participantes.',
+      confirmText: 'Sim, Encerrar',
+      cancelText: 'Continuar sessão',
+      showCloseButton: true,
+    });
+    if (!confirmed) return;
 
-  attendance.close();
-  translator.close();
-  showSessionUI(false);
-  showToast('Sessão encerrada', 'success');
+    // Erro de despublicação não é sucesso. Preservamos a sessão na tela
+    // para que o mediador possa tentar novamente sem deixar um evento órfão.
+    if (!state.unpublish) throw new Error('Função de despublicação indisponível.');
+    await state.unpublish();
+    state.activeSession = null;
+    state.unpublish = null;
+
+    attendance.close();
+    translator.close();
+    showSessionUI(false);
+    showToast('Sessão encerrada', 'success');
+  } catch (error) {
+    console.error('Não foi possível retirar a sessão ativa do banco:', error);
+    showToast('Falha ao encerrar no banco. Confira a conexão e tente novamente.', 'error');
+  } finally {
+    isEnding = false;
+  }
 }
 
 /** Navegação pelos slides só vale com a sessão na tela e sem modal/gaveta abertos. */
