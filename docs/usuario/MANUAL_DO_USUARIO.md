@@ -62,9 +62,13 @@ As instruções descrevem o comportamento observado na main após os PRs #2 e #1
 1. Abra a página pública **Circle Tradutor** (`circle-translator.html`).
 2. Digite a palavra ou frase no campo de origem, com até 300 caracteres (limite observado na interface).
 3. Clique em **Traduzir** e aguarde a resposta.
-4. Se houver uma sessão ativa, a versão analisada **tenta salvar automaticamente** a tradução como flashcard da sessão.
+4. Se houver uma sessão no ar, a mensagem abaixo do tradutor diz o que aconteceu com a tradução:
+   - **"Flashcard salvo na sessão ..."** — a tradução virou card da sessão;
+   - **"Tradução concluída, mas o flashcard não foi salvo..."** — as regras de segurança bloquearam a gravação pública (a tradução continua valendo);
+   - **"Neste ambiente o tradutor público não salva flashcards automaticamente"** — ambiente de teste local;
+   - **"Não foi possível traduzir agora"** — o serviço de tradução está indisponível; tente de novo.
 
-**Privacidade:** não coloque senhas, documentos pessoais, informações médicas ou conteúdo sigiloso no tradutor. O serviço faz requisições ao backend de tradução; política de retenção e processamento ainda deve ser formalizada pelos responsáveis. O fluxo automático de gravação pública ainda está sob revisão de segurança.
+**Privacidade:** não coloque senhas, documentos pessoais, informações médicas ou conteúdo sigiloso no tradutor. O serviço faz requisições ao backend de tradução; política de retenção e processamento ainda deve ser formalizada pelos responsáveis. A gravação pública de cards depende de um backend controlado ainda não disponível (`docs/backend/CONTRATO_BACKEND.md`).
 
 ## 7. Administrador — contas e papéis
 
@@ -74,7 +78,7 @@ As instruções descrevem o comportamento observado na main após os PRs #2 e #1
 4. Use **Editar Perfil** para corrigir nomes e papel; a edição atual não altera e-mail no Firebase Auth.
 5. Use **Excluir Perfil** para revogar o acesso, com confirmação.
 
-**Importante para administradores:** a versão avaliada mantém a conta no Firebase Authentication ao realizar exclusão lógica do perfil. Também pode deixar uma conta Auth órfã se a gravação do perfil falhar. A gestão de usuários deve migrar ao backend antes de ser considerada plenamente robusta.
+**Importante para administradores:** a exclusão é lógica — o perfil some e o acesso é bloqueado, mas a conta continua no Firebase Authentication. Se a gravação do perfil falhar ao criar uma conta, o sistema **desfaz** a conta de login e avisa; se nem isso for possível, a mensagem mostra o uid da conta sem perfil para o operador remover. A gestão definitiva de contas deve ir para o backend com Admin SDK (`docs/backend/CONTRATO_BACKEND.md`).
 
 ## 8. Solução de problemas
 

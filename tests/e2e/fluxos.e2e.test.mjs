@@ -83,8 +83,8 @@ describe('E2E [Firebase simulado] fluxos principais', () => {
     await page.fill('#sourceText', 'dog');
     await page.locator('#translateBtn').click();
     await page.waitForFunction(() => document.getElementById('targetText').value === 'cachorro');
-    await page.locator('#statusMessage.error, #statusMessage.warning, #statusMessage.info').waitFor();
-    assert.deepEqual(backend.adminGet(`flashcards/${SESSIONS.both}`), before, 'regra deve negar a escrita anônima');
+    await page.locator('#statusMessage.info', { hasText: 'não salva flashcards automaticamente' }).waitFor();
+    assert.deepEqual(backend.adminGet(`flashcards/${SESSIONS.both}`), before, 'nenhum card anônimo');
     assert.equal(ctx.network.translations.length, 1);
     await ctx.context.close();
   });

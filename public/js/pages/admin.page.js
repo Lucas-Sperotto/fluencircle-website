@@ -153,12 +153,21 @@ async function saveUser(event) {
     await loadUsers();
   } catch (error) {
     console.error('Erro ao salvar usuário:', error);
-    showToast(error.code === 'auth/email-already-in-use'
-      ? 'Este e-mail já está cadastrado no sistema.'
-      : `Erro ao processar requisição: ${error.message}`, 'error');
+    showToast(saveErrorMessage(error), 'error');
   } finally {
     restore();
   }
+}
+
+/** Mensagem para cada falha ao salvar uma conta (inclui o resultado da compensação). */
+function saveErrorMessage(error) {
+  if (error.code === 'auth/email-already-in-use') return 'Este e-mail já está cadastrado no sistema.';
+  if (error.code === 'profile-write-failed') {
+    return error.rolledBack
+      ? 'Não foi possível gravar o perfil. A conta de login criada foi desfeita; revise os dados e tente de novo.'
+      : `Não foi possível gravar o perfil e a conta de login ficou sem perfil (uid ${error.orphanUid}). Avise o operador do Firebase para removê-la.`;
+  }
+  return `Erro ao processar requisição: ${error.message}`;
 }
 
 async function removeUser(uid, name) {

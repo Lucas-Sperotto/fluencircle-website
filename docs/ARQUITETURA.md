@@ -66,7 +66,7 @@ user_sessions/{uid}/{sessaoId}     { topic, startedAt }            (índice de p
 
 **Sessão ao vivo** (`pages/presentation/`): o mediador escolhe um tema (`theme-picker.js`) → "Iniciar" pergunta antes de assumir o tradutor se outra tela estiver no ar, grava a sessão e publica `current_session` por transação com posse desta aba; o `onDisconnect` apaga só a presença desta aba (`live/{presenterId}`), então uma aba antiga não derruba a nova (ADR-003) → os slides (`slides.js`) avançam com setas, espaço ou clique → presença (`attendance.js`) grava na sessão e em `user_sessions` numa escrita atômica → o tradutor (`translator-modal.js`) traduz pelo backend e salva o par como flashcard → "Encerrar" despublica.
 
-**Tradutor público** (`pages/circle-translator.page.js`): observa `current_session` em tempo real; cada tradução feita com uma sessão ativa vira flashcard dessa sessão. Funciona sem login — por isso as regras do banco precisam limitar o que um visitante pode gravar (ver `docs/firebase/`).
+**Tradutor público** (`pages/circle-translator.page.js`): observa `current_session` em tempo real (só sessões no ar); traduz sem login. Salvar a tradução como card depende do ambiente (`config/environment.js`): no Emulator não tenta; em produção tenta a escrita direta herdada e, se as regras negarem (a proposta nega escrita anônima), avisa que o card não foi salvo. O destino é o backend controlado descrito em `docs/backend/CONTRATO_BACKEND.md` (não implementado).
 
 **Revisão espaçada** (`domain/srs.js` + `pages/flashcards.page.js`): cada deck tem uma etapa (0 a 3). A etapa 1 libera 24 h depois da sessão; a 2, 7 dias depois de concluir a 1; a 3, 30 dias depois de concluir a 2. Terminar a pilha com a etapa liberada grava o avanço em `student_reviews`.
 
@@ -84,7 +84,7 @@ Sem build, cada `@import` é uma requisição a mais no primeiro carregamento. �
 2. **Leitura dos flashcards pelo aluno** — resolvido no código (ADR-004): a tela lê `user_sessions/{uid}` e só os decks das próprias sessões; as regras propostas restringem a leitura por presença. Dados de produção ainda não migrados (plano offline em `scripts/migrations/`).
 3. **Contagem de cards na lista de sessões** — `manage-meetings` baixa todos os cards só para contar. Guardar `flashcardCount` na sessão resolve.
 4. **Uma sessão pública por vez** — `current_session` continua sendo um nó único, agora com posse por aba, versão e confirmação para assumir (ADR-003): não há mais sobrescrita silenciosa nem queda de aba antiga apagando a nova. Várias sessões simultâneas exigem salas por código (`active_sessions/{codigo}` e `circle-translator.html?sala=...`), plano no mesmo ADR.
-5. **Operações privilegiadas no navegador** — criar e excluir contas deveria rodar no backend com o Admin SDK, com papéis em *custom claims*.
+5. **Operações privilegiadas no navegador** — criar e excluir contas deveria rodar no backend com o Admin SDK, com papéis em *custom claims*. Enquanto isso, a criação desfaz a conta de login se o perfil falhar (`services/account-creation.js`).
 6. **Prompt no navegador** — o backend aceita qualquer prompt. Melhor: rota `/api/translate` que recebe só o texto e monta o prompt no servidor.
 
 ### Caminho para a arquitetura B (Vite)

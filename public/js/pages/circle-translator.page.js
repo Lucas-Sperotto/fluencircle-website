@@ -1,13 +1,15 @@
 /**
  * @file Circle Tradutor (circle-translator.html) — página pública, sem login.
  *
- * Usada nas sessões presenciais: cada tradução feita aqui vira flashcard da
- * sessão que o mediador estiver conduzindo (`current_session`).
- *
- * ATENÇÃO: este frontend ainda tenta salvar cartões diretamente no RTDB
- * sem login. As regras ATIVAS não foram auditadas; o rascunho de regras
- * passa a NEGAR escrita anônima, o que impede salvar até existir backend
- * com controle de sessão, identidade, tamanho e rate limit.
+ * Usada nas sessões presenciais: a tradução sempre funciona sem login; salvar
+ * a tradução como flashcard da sessão no ar (`current_session`) depende do
+ * ambiente (config/environment.js → publicTranslatorSavesFlashcards):
+ * - ligado (produção, por compatibilidade): tenta gravar direto no RTDB. Se as
+ *   regras negarem (a proposta nega escrita anônima — Issue #5), a tradução
+ *   continua na tela e a pessoa vê que o card NÃO foi salvo;
+ * - desligado (Emulator): não tenta gravar. O caminho correto é o backend
+ *   controlado (docs/backend/CONTRATO_BACKEND.md), ainda não disponível.
+ * Erros de tradução e de gravação têm mensagens diferentes.
  * A exibição como texto ajuda contra XSS, mas não resolve autorização.
  */
 import { watchCurrentSession } from '../services/sessions.service.js';
@@ -15,6 +17,8 @@ import { addFlashcard } from '../services/flashcards.service.js';
 import { translateText } from '../services/translate.service.js';
 import { TRANSLATOR_MAX_LENGTH } from '../config/app.config.js';
 import { canSaveTranslationToSession } from '../domain/active-session.js';
+import { isPermissionDenied } from '../domain/errors.js';
+import { currentEnvironment } from '../config/environment.js';
 import { byId } from '../ui/dom.js';
 import { mountEnvironmentBadge } from '../ui/environment-badge.js';
 
@@ -62,25 +66,40 @@ async function handleTranslate() {
   translateButton.textContent = 'Traduzindo...';
   clearStatus();
   try {
-    const translation = await translateText(text);
-    resultInput.value = translation;
-    if (originSession && translation) {
-      if (!canSaveTranslationToSession(originSession, activeSession)) {
-        showStatus('A sessão mudou durante a tradução. O texto não foi salvo como flashcard.', 'warning');
-      } else {
-        await addFlashcard(originSession.sessionId, {
-          front: text,
-          back: translation,
-          topic: originSession.topic || DEFAULT_TOPIC,
-        });
-      }
+    let translation;
+    try {
+      translation = await translateText(text);
+    } catch (error) {
+      console.error('Erro na tradução:', error);
+      showStatus('Não foi possível traduzir agora. Tente novamente.', 'error');
+      return;
     }
-  } catch (error) {
-    console.error('Erro no processo:', error);
-    showStatus('Ocorreu um erro ao processar. Tente novamente.', 'error');
+    resultInput.value = translation;
+    if (originSession && translation) await saveTranslation(originSession, text, translation);
   } finally {
     translateButton.disabled = false;
     translateButton.textContent = 'Traduzir';
+  }
+}
+
+/** Tenta salvar a tradução como flashcard da sessão no ar, conforme o ambiente. */
+async function saveTranslation(originSession, front, back) {
+  if (!currentEnvironment.publicTranslatorSavesFlashcards) {
+    showStatus('Tradução concluída. Neste ambiente o tradutor público não salva flashcards automaticamente.', 'info');
+    return;
+  }
+  if (!canSaveTranslationToSession(originSession, activeSession)) {
+    showStatus('A sessão mudou durante a tradução. O texto não foi salvo como flashcard.', 'warning');
+    return;
+  }
+  try {
+    await addFlashcard(originSession.sessionId, { front, back, topic: originSession.topic || DEFAULT_TOPIC });
+    showStatus(`Flashcard salvo na sessão "${originSession.topic || DEFAULT_TOPIC}".`, 'success');
+  } catch (error) {
+    console.error('Erro ao salvar o flashcard:', error);
+    showStatus(isPermissionDenied(error)
+      ? 'Tradução concluída, mas o flashcard não foi salvo: a gravação pública está bloqueada pelas regras de segurança.'
+      : 'Tradução concluída, mas não foi possível salvar o flashcard. Tente novamente.', 'warning');
   }
 }
 
