@@ -1,4 +1,6 @@
-# Matriz de testes — comandos executados e evidências
+# Matriz de testes — relatório histórico de execução Claude
+
+> **Complemento posterior (ChatGPT, 19/11/2026):** o registro abaixo descreve o ambiente original do Claude e não deve ser reescrito como se ele tivesse acesso ao GitHub ou ao Firebase Emulator. Depois do recebimento, os PRs #29–#34 foram abertos e mesclados, a correção de isolamento de testes foi aplicada por ChatGPT e a CI independente aprovou **87/87 unitários offline, 65/65 testes de regras no Firebase Emulator oficial e 44/44 E2E Playwright com Firebase simulado** na execução [44537468469](https://github.com/Lucas-Sperotto/fluencircle-website/actions/runs/44537468469). Os resultados e ressalvas atuais estão em [CHATGPT_ACEITE_ACADEMICO_2026-11-19.md](../auditorias/CHATGPT_ACEITE_ACADEMICO_2026-11-19.md). Esses testes não validam produção.
 
 **Executor:** Claude (Opus 5.5), em ambiente Linux isolado da Anthropic, em 19/11/2026.
 **Código testado:** branch `feat/claude-hardening-entrega`, commit `f98048e` (último commit de código; os commits
@@ -83,9 +85,9 @@ acima foram copiados desses logs.
 ## 6. Como reproduzir
 
 ```bash
-npm install && npx playwright install chromium
+npm ci && npx playwright install chromium
 npm test && npm run rules:check && npm run test:rules:sim
-npm run test:rules        # precisa de Java 21; é o item 7, ainda não executado
+npm run test:rules        # precisa de Java 21; posteriormente APROVADO em GitHub Actions #44537468469
 npm run test:e2e
 node scripts/benchmarks/read-volume.mjs
 ```
