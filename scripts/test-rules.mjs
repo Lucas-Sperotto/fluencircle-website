@@ -28,7 +28,13 @@ if (driver === 'emulator') {
   console.log('Executor: SIMULADOR local (pré-verificação; não substitui o Firebase Emulator).');
 }
 
-const result = spawnSync(process.execPath, ['--test', 'tests/rules/*.test.mjs'], {
+// Vários arquivos de teste compartilham UMA instância do Firebase Emulator
+// e cada beforeEach limpa/carrega o banco. Rodá-los em paralelo faz uma suíte
+// apagar os dados da outra (falhas espúrias de transação e autorização).
+// No simulador, cada arquivo cria seu próprio banco e pode ser paralelo.
+const runnerArgs = ['--test', ...(driver === 'emulator' ? ['--test-concurrency=1'] : []),
+  'tests/rules/*.test.mjs'];
+const result = spawnSync(process.execPath, runnerArgs, {
   stdio: 'inherit',
   env: { ...process.env, RULES_DRIVER: driver },
 });
