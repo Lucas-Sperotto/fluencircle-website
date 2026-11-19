@@ -37,6 +37,15 @@
                     </a>
                 </nav>
             </div>
+
+            <!-- Agenda semanal do participante (PR #2): aparece para quem tem plano. -->
+            <section class="student-week hidden" id="student-week" aria-labelledby="student-week-title">
+                <div class="student-week__header">
+                    <h2 id="student-week-title">Sua semana</h2>
+                    <p class="student-week__subtitle" id="student-week-subtitle"></p>
+                </div>
+                <div class="week-agenda" id="student-agenda" aria-live="polite"></div>
+            </section>
         </div>
     </main>
 </body>
