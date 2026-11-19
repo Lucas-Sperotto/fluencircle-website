@@ -22,7 +22,7 @@ import { DB_PATHS, dbPath } from './db-paths.js';
  * @property {string} [topic]
  * @property {string} [startedAt]
  * @property {string} [mediatorEmail]
- * @property {Record<string, { name: string, email: string, addedAt: string }>} [attendees]
+ * @property {Record<string, { addedAt: string }>} [attendees] dados antigos podem ter também name/email
  */
 
 /** @returns {Promise<Record<string, Session>>} todas as sessões, por id */
@@ -170,9 +170,36 @@ export function watchCurrentSession(callback) {
 
 /**
  * Marca presença e índice em um único update atômico; propaga falhas de regras.
+ * @param {{ id: string, topic: string, startedAt: string }} session sessão em andamento
+ * @param {string} uid aluno
  */
-export function addAttendee(sessionId, uid, { name, email }) {
-  return update(ref(database), buildAddAttendeeUpdates(sessionId, uid, { name, email }, nowIso()));
+export function addAttendee(session, uid) {
+  return update(ref(database), buildAddAttendeeUpdates(session.id, uid, { topic: session.topic, startedAt: session.startedAt }, nowIso()));
+}
+
+/**
+ * Índice de presença do próprio aluno (`user_sessions/{uid}`).
+ * @param {string} uid
+ * @returns {Promise<Record<string, unknown>>}
+ */
+export async function getUserSessionIndex(uid) {
+  const snapshot = await get(ref(database, dbPath(DB_PATHS.userSessions, uid)));
+  return snapshot.exists() ? snapshot.val() : {};
+}
+
+/**
+ * Tema e início de UMA sessão, lidos campo a campo (as regras liberam só esses
+ * campos para quem participou). Usado para entradas antigas do índice (`true`).
+ * @param {string} sessionId
+ * @returns {Promise<{ topic: string, startedAt: string } | null>} null se a sessão não existe mais
+ */
+export async function getSessionSummary(sessionId) {
+  const [topic, startedAt] = await Promise.all([
+    get(ref(database, dbPath(DB_PATHS.sessions, sessionId, 'topic'))),
+    get(ref(database, dbPath(DB_PATHS.sessions, sessionId, 'startedAt'))),
+  ]);
+  if (!topic.exists() && !startedAt.exists()) return null;
+  return { topic: topic.val() || '', startedAt: startedAt.val() || '' };
 }
 
 /**

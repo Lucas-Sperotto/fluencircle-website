@@ -38,7 +38,7 @@ As instruções descrevem o comportamento observado na main após os PRs #2 e #1
 1. Abra **Conversação** (`presentation.html`).
 2. Selecione um tema existente e clique em **Iniciar**.
 3. Apresente as perguntas com os controles de navegação; a implementação aceita teclado (setas e espaço), além da interação com a tela.
-4. Abra o painel de participantes para marcar a presença dos alunos.
+4. Abra o painel de participantes para marcar a presença dos alunos. A presença grava só a data; nome e e-mail continuam apenas no cadastro, que alunos não veem.
 5. Use o tradutor integrado quando precisar; as traduções podem gerar flashcards vinculados à sessão.
 6. Ao terminar, use **Encerrar** e confirme.
 

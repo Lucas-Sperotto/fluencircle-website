@@ -43,10 +43,14 @@ export const SESSIONS = Object.freeze({
  */
 export function buildSyntheticDatabase({ uids = {} } = {}) {
   const uid = (key) => uids[key] || ACTORS[key].uid;
-  const attendee = (key, addedAt) => {
+  // Presença no formato atual: só a data (sem PII).
+  const attendee = (addedAt) => ({ addedAt });
+  // Formato ANTIGO (antes da Issue #10), mantido de propósito para testar compatibilidade.
+  const legacyAttendee = (key, addedAt) => {
     const actor = ACTORS[key];
     return { name: `${actor.firstName} ${actor.lastName}`, email: actor.email, addedAt };
   };
+  const summary = (topic, startedAt) => ({ topic, startedAt });
   const card = (sessionId, topic, front, back, createdAt) => ({ front, back, topic, sessionId, createdAt });
 
   const users = {};
@@ -78,20 +82,20 @@ export function buildSyntheticDatabase({ uids = {} } = {}) {
       [SESSIONS.anaOnly]: {
         templateId: 'tema-tecnologia', topic: 'Technology & Daily Life', startedAt: '2026-11-10T19:00:00.000Z',
         mediatorEmail: ACTORS.mediatorA.email,
-        attendees: { [uid('studentA')]: attendee('studentA', '2026-11-10T19:05:00.000Z') },
+        attendees: { [uid('studentA')]: attendee('2026-11-10T19:05:00.000Z') },
       },
       [SESSIONS.both]: {
         templateId: 'tema-viagem', topic: 'Travel', startedAt: '2026-11-16T19:00:00.000Z',
         mediatorEmail: ACTORS.mediatorB.email,
         attendees: {
-          [uid('studentA')]: attendee('studentA', '2026-11-16T19:05:00.000Z'),
-          [uid('studentB')]: attendee('studentB', '2026-11-16T19:06:00.000Z'),
+          [uid('studentA')]: attendee('2026-11-16T19:05:00.000Z'),
+          [uid('studentB')]: legacyAttendee('studentB', '2026-11-16T19:06:00.000Z'),
         },
       },
       [SESSIONS.brunoOnly]: {
         templateId: 'tema-viagem', topic: 'Travel II', startedAt: '2026-11-17T19:00:00.000Z',
         mediatorEmail: ACTORS.mediatorA.email,
-        attendees: { [uid('studentB')]: attendee('studentB', '2026-11-17T19:05:00.000Z') },
+        attendees: { [uid('studentB')]: attendee('2026-11-17T19:05:00.000Z') },
       },
     },
     flashcards: {
@@ -113,8 +117,15 @@ export function buildSyntheticDatabase({ uids = {} } = {}) {
       },
     },
     user_sessions: {
-      [uid('studentA')]: { [SESSIONS.anaOnly]: true, [SESSIONS.both]: true },
-      [uid('studentB')]: { [SESSIONS.both]: true, [SESSIONS.brunoOnly]: true },
+      [uid('studentA')]: {
+        [SESSIONS.anaOnly]: summary('Technology & Daily Life', '2026-11-10T19:00:00.000Z'),
+        [SESSIONS.both]: summary('Travel', '2026-11-16T19:00:00.000Z'),
+      },
+      // Bruno tem uma entrada no formato antigo (`true`) para testar compatibilidade.
+      [uid('studentB')]: {
+        [SESSIONS.both]: true,
+        [SESSIONS.brunoOnly]: summary('Travel II', '2026-11-17T19:00:00.000Z'),
+      },
     },
   };
 }

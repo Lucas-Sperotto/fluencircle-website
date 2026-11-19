@@ -4,11 +4,16 @@ import {
   buildAddAttendeeUpdates, buildRemoveAttendeeUpdates, buildDeleteSessionUpdates,
 } from '../../public/js/services/session-updates.js';
 
-test('presença: cria sessão e índice do aluno numa mesma escrita', () => {
-  assert.deepEqual(buildAddAttendeeUpdates('sess-A', 'uid-1', { name: 'Lia', email: 'lia@example.org' }, '2026-11-18T12:00:00Z'), {
-    'meeting_sessions/sess-A/attendees/uid-1': { name: 'Lia', email: 'lia@example.org', addedAt: '2026-11-18T12:00:00Z' },
-    'user_sessions/uid-1/sess-A': true,
+test('presença: data na sessão e resumo no índice do aluno, numa mesma escrita e sem PII', () => {
+  const updates = buildAddAttendeeUpdates('sess-A', 'uid-1', { topic: 'Travel', startedAt: '2026-11-18T11:00:00Z' }, '2026-11-18T12:00:00Z');
+  assert.deepEqual(updates, {
+    'meeting_sessions/sess-A/attendees/uid-1': { addedAt: '2026-11-18T12:00:00Z' },
+    'user_sessions/uid-1/sess-A': { topic: 'Travel', startedAt: '2026-11-18T11:00:00Z' },
   });
+  assert.doesNotMatch(JSON.stringify(updates), /@|name|email/);
+});
+test('presença exige o resumo da sessão para o índice', () => {
+  assert.throws(() => buildAddAttendeeUpdates('sess-A', 'uid-1', { topic: 'Travel' }, '2026-11-18T12:00:00Z'), TypeError);
 });
 test('remoção de presença: ambos os caminhos usam null em uma operação', () => {
   assert.deepEqual(buildRemoveAttendeeUpdates('sess-A', 'uid-1'), {

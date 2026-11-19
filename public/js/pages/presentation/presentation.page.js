@@ -87,7 +87,7 @@ let isStarting = false;
 let isEnding = false;
 
 const slides = createSlideDeck(document.querySelector('.slide'));
-const attendance = createAttendance(() => state.activeSession?.id || '');
+const attendance = createAttendance(() => state.activeSession);
 const translator = createTranslatorModal(() => state.activeSession);
 const themePicker = createThemePicker({
   trigger: byId('presentation-select'),

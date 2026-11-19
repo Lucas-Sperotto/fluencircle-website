@@ -54,12 +54,12 @@ users/{uid}                        firstName, lastName, email, role, createdAt, 
 deleted_users/{uid}                deletedAt, deletedBy            (lista de bloqueio)
 meetings/{temaId}                  topic, questions[], createdAt, updatedAt
 meeting_sessions/{sessaoId}        templateId, topic, startedAt, mediatorEmail,
-                                   attendees/{uid}: { name, email, addedAt }
+                                   attendees/{uid}: { addedAt }    (sem PII — ADR-004; antigos podem ter name/email)
 current_session                    sessionId, topic, startedAt, presenterId, version,
                                    takeoverOf?, live/{presenterId}  (tradutor público; posse por aba — ADR-003)
 flashcards/{sessaoId}/{cardId}     front, back, topic, sessionId, createdAt
 student_reviews/{uid}/{sessaoId}   stage, lastReviewedAt, stage1CompletedAt...
-user_sessions/{uid}/{sessaoId}     true                            (índice de presença)
+user_sessions/{uid}/{sessaoId}     { topic, startedAt }            (índice de presença; antigo: true)
 ```
 
 ## Fluxos principais
@@ -81,7 +81,7 @@ Sem build, cada `@import` é uma requisição a mais no primeiro carregamento. �
 ## Limitações conhecidas e próximos passos
 
 1. **Regras do banco** — o código não substitui regras. Proposta pronta em `docs/firebase/database.rules.proposta.json`.
-2. **Leitura dos flashcards pelo aluno** — a tela ainda baixa todas as sessões e todos os cards e filtra no navegador (comportamento herdado, mantido para não arriscar dados de produção). Próximo passo: em `pages/flashcards.page.js`, trocar `listSessions()` + `listAllFlashcards()` por uma leitura de `user_sessions/{uid}` seguida das sessões e cards só desses ids. Com isso, a regra de leitura de `meeting_sessions` e `flashcards` pode ficar restrita a quem participou.
+2. **Leitura dos flashcards pelo aluno** — resolvido no código (ADR-004): a tela lê `user_sessions/{uid}` e só os decks das próprias sessões; as regras propostas restringem a leitura por presença. Dados de produção ainda não migrados (plano offline em `scripts/migrations/`).
 3. **Contagem de cards na lista de sessões** — `manage-meetings` baixa todos os cards só para contar. Guardar `flashcardCount` na sessão resolve.
 4. **Uma sessão pública por vez** — `current_session` continua sendo um nó único, agora com posse por aba, versão e confirmação para assumir (ADR-003): não há mais sobrescrita silenciosa nem queda de aba antiga apagando a nova. Várias sessões simultâneas exigem salas por código (`active_sessions/{codigo}` e `circle-translator.html?sala=...`), plano no mesmo ADR.
 5. **Operações privilegiadas no navegador** — criar e excluir contas deveria rodar no backend com o Admin SDK, com papéis em *custom claims*.

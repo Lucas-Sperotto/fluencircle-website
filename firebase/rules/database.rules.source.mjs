@@ -48,6 +48,9 @@ const isSelf = (variable) => `(${signedIn} && auth.uid === ${variable})`;
 const attended = (uidExpr, sessionExpr) => `(root.child('user_sessions').child(${uidExpr}).child(${sessionExpr}).exists()`
   + ` || root.child('meeting_sessions').child(${sessionExpr}).child('attendees').child(${uidExpr}).exists())`;
 
+/** Quem está autenticado tem perfil e participou da sessão `$x` (leitura do aluno). */
+const isAttendee = (sessionExpr) => `(${hasProfile} && ${attended('auth.uid', sessionExpr)})`;
+
 // ---------------------------------------------------------------------------
 // Validadores de esquema
 // ---------------------------------------------------------------------------
@@ -130,28 +133,30 @@ export function buildRules() {
         },
       },
 
-      // Sessões realizadas. COMPATIBILIDADE: qualquer conta com perfil ainda lê
-      // a coleção inteira porque `flashcards.page.js` faz isso hoje. A leitura
-      // restrita por presença (Issue #10) vem junto com a mudança da tela.
+      // Sessões realizadas. Só a equipe lê a coleção ou uma sessão inteira
+      // (há presenças de várias pessoas). Quem participou lê APENAS `topic` e
+      // `startedAt` da própria sessão — usado só para entradas antigas do índice
+      // (Issue #10). A tela do aluno parte de `user_sessions/{uid}`.
       meeting_sessions: {
-        '.read': hasProfile,
+        '.read': isStaff,
         $sessionId: {
           '.write': isStaff,
           '.validate': "newData.hasChildren(['topic', 'startedAt'])",
           templateId: validate(text(128)),
-          topic: validate(text(200, 1)),
-          startedAt: validate(isoTimestamp),
+          topic: { '.read': isAttendee('$sessionId'), '.validate': text(200, 1) },
+          startedAt: { '.read': isAttendee('$sessionId'), '.validate': isoTimestamp },
           // Quem cria a sessão registra o PRÓPRIO e-mail; depois ele não muda.
           mediatorEmail: validate(`${text(254)} && (data.exists() ? newData.val() === data.val() : newData.val() === auth.token.email)`),
           attendees: {
             $uid: {
               // Presença só existe junto com o índice reverso, na MESMA escrita
               // (update multicaminho de session-updates.js). Remoções não passam por .validate.
+              // PII mínima (Issue #10): só a data; nome e e-mail ficam em `users`.
+              // Registros antigos com name/email continuam legíveis pela equipe, mas
+              // nenhuma escrita nova pode gravá-los ($other).
               '.validate': "newData.hasChildren(['addedAt'])"
                 + " && root.child('users').child($uid).exists()"
                 + " && newData.parent().parent().parent().parent().child('user_sessions').child($uid).child($sessionId).exists()",
-              name: validate(text(160)),
-              email: validate(email),
               addedAt: validate(isoTimestamp),
               ...noOtherFields,
             },
@@ -196,11 +201,12 @@ export function buildRules() {
       },
 
       // Flashcards por sessão. Visitante NÃO grava direto (Issue #5): a gravação
-      // pública precisa de backend controlado. COMPATIBILIDADE de leitura: igual
-      // a meeting_sessions (restrição por presença vem com a Issue #10).
+      // pública precisa de backend controlado. Leitura: equipe lê tudo; aluno lê
+      // só os decks das sessões de que participou (Issue #10).
       flashcards: {
-        '.read': hasProfile,
+        '.read': isStaff,
         $sessionId: {
+          '.read': isAttendee('$sessionId'),
           '.write': isStaff,
           $cardId: {
             '.validate': "newData.hasChildren(['front', 'back'])"
@@ -240,13 +246,19 @@ export function buildRules() {
 
       // Índice reverso de presença (aluno → sessões). Cada aluno lê só o seu;
       // só a equipe grava, e sempre junto com `attendees` (mesma escrita).
+      // Formato novo: resumo { topic, startedAt } para a tela de flashcards não
+      // ler meeting_sessions. Entradas antigas `true` continuam legíveis, mas
+      // não podem mais ser gravadas.
       user_sessions: {
         $uid: {
           '.read': isSelf('$uid'),
           $sessionId: {
             '.write': isStaff,
-            '.validate': "newData.val() === true"
+            '.validate': "newData.hasChildren(['topic', 'startedAt'])"
               + " && newData.parent().parent().parent().child('meeting_sessions').child($sessionId).child('attendees').child($uid).exists()",
+            topic: validate(text(200, 1)),
+            startedAt: validate(isoTimestamp),
+            ...noOtherFields,
           },
         },
       },
