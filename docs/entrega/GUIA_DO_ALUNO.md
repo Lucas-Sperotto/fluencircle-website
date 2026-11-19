@@ -102,7 +102,7 @@ Use uma janela normal e uma **anônima** (contas diferentes ao mesmo tempo).
 | Comando | O que prova | Precisa de |
 | --- | --- | --- |
 | `npm test` | lógica pura (SRS, posse da sessão, índice, ambiente, contas), simulador e configuração | só Node |
-| `npm run test:rules` | **matriz de acesso no Firebase Emulator** (prova oficial das regras) | `npm install` + Java 21 |
+| `npm run test:rules` | **matriz de acesso no Firebase Emulator** (prova oficial das regras) | `npm ci` + Java 21 |
 | `npm run test:rules:sim` | a mesma matriz no simulador local (pré-verificação rápida, **não é o Firebase**) | só Node |
 | `npm run test:e2e` | fluxos pela interface, perfis, concorrência, privacidade e acessibilidade básica, com Firebase **simulado** | `npm install` + `npx playwright install chromium` |
 | `npm run rules:check` | o JSON das regras corresponde à fonte comentada | só Node |
@@ -130,7 +130,7 @@ importa nada; páginas internas começam com `initProtectedPage()`; sem `style=`
 
 Em ordem sugerida (detalhes em [`LIMITACOES_E_PENDENCIAS.md`](LIMITACOES_E_PENDENCIAS.md)):
 
-1. Fazer a CI rodar verde, inclusive o job `rules-emulator`, e gerar o `package-lock.json`.
+1. Confirmar que a CI continua verde após cada mudança; o job `rules-emulator` e o `package-lock.json` **já existem** na `main`. Usar `npm ci` e manter o lockfile atualizado quando dependências forem alteradas.
 2. Backend controlado do tradutor (contrato em `docs/backend/CONTRATO_BACKEND.md`) e criação de contas pelo Admin SDK.
 3. Salas por código/QR para várias sessões simultâneas (plano no `ADR-003`).
 4. Projeto de staging, migração de privacidade em staging e publicação controlada (checklist).
