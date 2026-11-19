@@ -1,0 +1,119 @@
+[
+  {
+    "id": "FC-01",
+    "severity": "P0",
+    "title": "Escrita de flashcards anônima em proposta RTDB",
+    "path": "docs/firebase/database.rules.proposta.json",
+    "evidence": "A regra histórica de $cardId permitia criação ao coincidir current_session, sem auth != null; sem limitação de volume.",
+    "status": "Confirmado no rascunho original; desconhecido nas regras ativas",
+    "recommendation": "Negar escrita anônima direta; backend protegido com rate limit/App Check ou alternativa validada.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "Firebase Emulator com matriz positiva/negativa"
+    ]
+  },
+  {
+    "id": "FC-02",
+    "severity": "P0",
+    "title": "Leitura global e schema permissivo em proposta RTDB",
+    "path": "docs/firebase/database.rules.proposta.json",
+    "evidence": "meeting_sessions e flashcards legíveis por todos os usuários com perfil; lista users aberta a mediadores; .validate incompleta.",
+    "status": "Confirmado no rascunho; impacto em produção não verificado",
+    "recommendation": "Exportar regras reais, restringir por presença/ator, validar schema, testar Emulator.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "Firebase Emulator com matriz positiva/negativa"
+    ]
+  },
+  {
+    "id": "FC-03",
+    "severity": "P1",
+    "title": "Cobertura XSS incompleta na revisão Gemini",
+    "path": "public/js/",
+    "evidence": "CI textual reporta 42 módulos sem sinks proibidos, mas Gemini não inspecionou páginas JS/HTML linha a linha.",
+    "status": "Não verificado diretamente pelo Gemini",
+    "recommendation": "Inspecionar h(), atributos href/src e HTML; acrescentar testes DOM com dados não confiáveis.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "inspeção independente e teste correspondente"
+    ]
+  },
+  {
+    "id": "FC-04",
+    "severity": "P1",
+    "title": "Concorrência de current_session singleton",
+    "path": "public/js/services/sessions.service.js",
+    "evidence": "Único nó global com onDisconnect e sem ownerUid, risco de sobrescrita por dois mediadores.",
+    "status": "Estrutura verificada; concorrência real não executada",
+    "recommendation": "Usar posse/transações ou salas por código; Emulator com dois clientes.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "inspeção independente e teste correspondente"
+    ]
+  },
+  {
+    "id": "FC-05",
+    "severity": "P1",
+    "title": "Backend Render fora do repositório",
+    "path": "public/js/services/translate.service.js",
+    "evidence": "Serviço de terceiros não auditado; frontend repassa prompt; não há evidência de ID token/rate limit.",
+    "status": "Não verificado no servidor",
+    "recommendation": "Auditar código Render, exigir controle de origem/identidade, prompt servidor e cota.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "inspeção independente e teste correspondente"
+    ]
+  },
+  {
+    "id": "FC-06",
+    "severity": "P2",
+    "title": "SRS permite saltos/regressões na proposta RTDB",
+    "path": "docs/firebase/database.rules.proposta.json",
+    "evidence": "Validação histórica aceitava 0 <= stage <= 3 sem progressão ordenada.",
+    "status": "Confirmado no rascunho; sistema ativo não verificado",
+    "recommendation": "Modelar sequência/timestamps e testes de regras; preservar dados legados com plano.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "inspeção independente e teste correspondente"
+    ]
+  },
+  {
+    "id": "FC-07",
+    "severity": "P2",
+    "title": "Sem .indexOn e leituras globais",
+    "path": "docs/firebase/database.rules.proposta.json",
+    "evidence": "Arquivo de regras não declara .indexOn; consulta cliente por nós inteiros é relatada.",
+    "status": "Confirmado para o rascunho",
+    "recommendation": "Consultas por user_sessions, índices de query e benchmark no Emulator.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "inspeção independente e teste correspondente"
+    ]
+  },
+  {
+    "id": "FC-08",
+    "severity": "P2",
+    "title": "Evidência E2E histórica não reproduzível",
+    "path": "docs/AUDITORIA.md",
+    "evidence": "Números 79 E2E/52 screenshots atribuídos a Claude sem suíte/fotos na CI atual; estado da credencial é pendência.",
+    "status": "Confirmado como lacuna documental",
+    "recommendation": "Criar E2E real e confirmar credencial com o operador; preservar relatórios como históricos.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "inspeção independente e teste correspondente"
+    ]
+  },
+  {
+    "id": "FC-09",
+    "severity": "P1",
+    "title": "CSP sem firebasedatabase.app no exemplo",
+    "path": "docs/firebase/firebase.json.exemplo",
+    "evidence": "CSP histórica liberava só firebaseio.com em connect-src, omitindo RTDB regional em firebasedatabase.app.",
+    "status": "Confirmado no exemplo; não implantado",
+    "recommendation": "Adicionar HTTPS e WSS para *.firebasedatabase.app; validar em preview.",
+    "source": "revisão Gemini encaminhada no chat",
+    "testsRequired": [
+      "validação CSP em Hosting preview"
+    ]
+  }
+]

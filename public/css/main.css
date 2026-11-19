@@ -1,0 +1,31 @@
+/**
+ * main.css — ponto de entrada dos estilos. É o único CSS que as páginas carregam
+ * (o tradutor público carrega, além dele, pages/circle-translator.css).
+ *
+ * A ORDEM IMPORTA: ela reproduz a ordem do antigo style.css, então a cascata
+ * continua igual. Regras de celular (responsive/) vêm depois das de desktop e
+ * as substituições de atributos style= (overrides/) vêm por último.
+ *
+ * Sem etapa de build, cada @import é uma requisição. Na arquitetura B (Vite),
+ * estes arquivos seriam concatenados automaticamente.
+ */
+@import url("base/tokens.css");
+@import url("base/base.css");
+@import url("layout/footer.css");
+@import url("layout/header.css");
+@import url("layout/sidebar.css");
+@import url("layout/main.css");
+@import url("components/buttons.css");
+@import url("pages/home.css");
+@import url("components/cards-grid.css");
+@import url("pages/flashcards.css");
+@import url("pages/themes-and-sessions.css");
+@import url("pages/presentation.css");
+@import url("pages/admin.css");
+@import url("components/modals.css");
+@import url("components/feedback.css");
+@import url("pages/auth.css");
+@import url("responsive/mobile.css");
+@import url("components/late-shared.css");
+@import url("components/environment-badge.css");
+@import url("overrides/inline-replacements.css");

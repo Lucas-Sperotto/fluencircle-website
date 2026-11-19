@@ -6,19 +6,22 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
-database.rules.json
-firebase.json
-package-lock.json
-package.json
-public/.firebaserc
-public/js/firebase.js
+
+# Segredos locais: nunca versionar. (A configuração WEB do Firebase não é segredo
+# e fica em public/js/config/firebase.config.js.)
 public/js/env.js
+
+# database.rules.json e firebase.json deixaram de ser ignorados: as regras do
+# banco são a principal barreira de segurança e precisam estar no Git para
+# revisão e testes. Propostas em docs/firebase/.
 
 node_modules/
 #Node js libraries
 
-# Firebase cache
+# Firebase cache e dados exportados do Emulator (nunca versionar dumps)
 .firebase/
+emulator-data/
+*-debug.log
 
 # Firebase config
 

@@ -1,0 +1,93 @@
+name: CI - verificações sem deploy
+
+# Nenhum job publica Hosting, regras ou funções, nem usa segredos.
+# O Firebase Emulator roda dentro do runner com o projeto fictício
+# demo-fluencircle-audit: não há conexão com o Firebase de produção.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    name: Offline - unitários, sintaxe, estáticos, arquitetura e regras (simulador)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testes unitários (sem rede e sem Firebase)
+        run: npm test
+      - name: Sintaxe JavaScript
+        run: find public/js tests scripts firebase -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+      - name: Referências HTML e JSON de configuração
+        run: node scripts/verify-static.mjs
+      - name: Limites de arquitetura e sinks HTML
+        run: node scripts/verify-architecture.mjs
+      - name: Regras propostas em sincronia com a fonte comentada
+        run: npm run rules:check
+      - name: Matriz de regras no SIMULADOR local (pré-verificação, não substitui o Emulator)
+        run: npm run test:rules:sim
+
+  rules-emulator:
+    name: Regras RTDB no Firebase Emulator (projeto demo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Java 21 (exigido pelos emuladores do firebase-tools 15)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Cache dos binários do Emulator
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Dependências reproduzíveis a partir de package-lock.json (npm ci)
+        run: npm ci --no-audit --no-fund
+      - name: Versões
+        run: |
+          node --version
+          java -version
+          npx firebase --version
+      - name: Matriz de regras no Firebase Emulator
+        run: npm run test:rules
+
+  e2e:
+    name: E2E de perfis e acessibilidade básica (Playwright, Firebase simulado)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependências de teste
+        run: npm ci --no-audit --no-fund
+      - name: Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+      - name: E2E (rede bloqueada; banco simulado aplica as regras propostas)
+        run: npm run test:e2e

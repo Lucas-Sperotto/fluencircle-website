@@ -1,0 +1,28 @@
+/**
+ * components/late-shared.css
+ * Regras compartilhadas que sobraram da antiga página de Planos. Ficam por último porque sobrescrevem regras anteriores (ex.: .empty-state).
+ */
+
+.btn-primary {
+    background: var(--third-color);
+    color: #070d14;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+.empty-state {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 40px 20px;
+    grid-column: 1 / -1;
+    font-size: 1rem;
+}

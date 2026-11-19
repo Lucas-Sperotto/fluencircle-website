@@ -1,0 +1,16 @@
+{
+  "database": {
+    "rules": "docs/firebase/database.rules.proposta.json"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": ["**/.*", "**/node_modules/**"]
+  },
+  "emulators": {
+    "singleProjectMode": true,
+    "auth": { "host": "127.0.0.1", "port": 9099 },
+    "database": { "host": "127.0.0.1", "port": 9000 },
+    "hosting": { "host": "127.0.0.1", "port": 5050 },
+    "ui": { "enabled": true, "host": "127.0.0.1", "port": 4000 }
+  }
+}

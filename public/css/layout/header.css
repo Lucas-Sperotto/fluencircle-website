@@ -1,0 +1,157 @@
+/**
+ * layout/header.css
+ * Cabeçalho fixo, logo, e-mail, papel e botão Sair.
+ */
+
+header {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-collapsed-width);
+    right: 0;
+    z-index: 100000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: var(--header-height);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--primary-color);
+    backdrop-filter: blur(8px);
+    transition: left 0.3s ease;
+}
+
+.logo {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    position: relative;
+}
+
+.logo-circle-left {
+    width: 12px;
+    height: 12px;
+    position: absolute;
+    bottom: -10px;
+    left: -10px;
+    border-radius: 50%;
+    background-color: var(--third-color);
+}
+
+.logo-circle-center {
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    position: relative;
+    border-radius: 50px;
+    background-color: var(--third-color);
+}
+
+.logo-inner-circle{
+     width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--third-color);
+
+}
+
+.logo-complete{
+
+    align-items: center;
+    gap: 10px;
+    display: flex;
+}
+
+.logo-complete .logo-inner-circle{
+    background-color: var(--primary-color);
+}
+
+.logo-complete .logo-top-text{
+    font-size: 1.6rem;
+}
+
+.logo-complete .logo-bottom-text{
+    color: var(--third-color);
+}
+
+.logo-complete p{
+    margin: -5px;
+    padding: 0px;
+}
+
+.logo-text {
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+}
+
+#logo-complete-footer{
+    transform: scale(1.3);
+
+}
+
+#logo-complete-footer .logo-inner-circle{
+    background-color: #202633;
+}
+
+.header-actions {
+    position: absolute;
+    right: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-role-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: rgb(60, 71, 85) ;
+}
+
+.badge-admin {
+    color: rgb(60, 71, 85) ;
+
+}
+
+.logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: var(--text-primary);
+    padding: 6px 14px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 82, 82, 0.15);
+    border-color: #ff5252;
+    color: #ff5252;
+}

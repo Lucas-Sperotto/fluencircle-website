@@ -1,0 +1,103 @@
+/**
+ * components/buttons.css
+ * Botões padrão (.home-btn, .secondary-btn, .danger-btn, .back-button).
+ */
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+.home-btn {
+    background-color: var(--third-color);
+    border: none;
+    height: 40px;
+    padding: 0 20px;
+    color: var(--primary-color);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.home-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+.home-btn-secondary,
+.secondary-btn {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    border-radius: 50px;
+    height: 40px;
+    padding: 0 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.home-btn-secondary:hover,
+.secondary-btn:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.danger-btn {
+    background-color: #ff5252;
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    height: 40px;
+    padding: 0 20px;
+    font-size: 0.85rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.danger-btn:hover {
+    background-color: #e04343;
+}
+
+.back-button {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    align-self: flex-start;
+    position: fixed!important  ;
+    top: 100px;
+    left: 100px;
+    transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Links com aparência de botão (atalhos da home). */
+a.home-btn {
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
