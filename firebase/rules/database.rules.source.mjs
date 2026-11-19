@@ -147,11 +147,12 @@ export function buildRules() {
             $uid: {
               // Presença só existe junto com o índice reverso, na MESMA escrita
               // (update multicaminho de session-updates.js). Remoções não passam por .validate.
+              // PII mínima (Issue #10): só a data; nome e e-mail ficam em `users`.
+              // Registros antigos com name/email continuam legíveis pela equipe, mas
+              // nenhuma escrita nova pode gravá-los ($other).
               '.validate': "newData.hasChildren(['addedAt'])"
                 + " && root.child('users').child($uid).exists()"
                 + " && newData.parent().parent().parent().parent().child('user_sessions').child($uid).child($sessionId).exists()",
-              name: validate(text(160)),
-              email: validate(email),
               addedAt: validate(isoTimestamp),
               ...noOtherFields,
             },
@@ -240,13 +241,19 @@ export function buildRules() {
 
       // Índice reverso de presença (aluno → sessões). Cada aluno lê só o seu;
       // só a equipe grava, e sempre junto com `attendees` (mesma escrita).
+      // Formato novo: resumo { topic, startedAt } para a tela de flashcards não
+      // ler meeting_sessions. Entradas antigas `true` continuam legíveis, mas
+      // não podem mais ser gravadas.
       user_sessions: {
         $uid: {
           '.read': isSelf('$uid'),
           $sessionId: {
             '.write': isStaff,
-            '.validate': "newData.val() === true"
+            '.validate': "newData.hasChildren(['topic', 'startedAt'])"
               + " && newData.parent().parent().parent().child('meeting_sessions').child($sessionId).child('attendees').child($uid).exists()",
+            topic: validate(text(200, 1)),
+            startedAt: validate(isoTimestamp),
+            ...noOtherFields,
           },
         },
       },

@@ -11,9 +11,9 @@ import { showToast } from '../../ui/toast.js';
 const NAME_OPTIONS = Object.freeze({ emailMode: 'full', fallback: 'Aluno' });
 
 /**
- * @param {() => string} getSessionId devolve o id da sessão ativa ('' se nenhuma)
+ * @param {() => ({ id: string, topic: string, startedAt: string } | null)} getSession sessão em andamento
  */
-export function createAttendance(getSessionId) {
+export function createAttendance(getSession) {
   const drawer = byId('attendance-drawer');
   const openButton = byId('open-attendance-btn');
   const closeButton = byId('close-attendance-btn');
@@ -24,7 +24,11 @@ export function createAttendance(getSessionId) {
   const countBadge = byId('attendance-count-badge');
 
   let students = [];
-  /** @type {Record<string, { name: string, email: string }>} */
+  /**
+   * Nomes exibidos na gaveta, só em memória: o banco guarda apenas a data da
+   * presença (Issue #10); nome e e-mail vêm do perfil, que só a equipe lê.
+   * @type {Record<string, { name: string, email: string }>}
+   */
   let attendees = {};
 
   const isDrawerOpen = () => !drawer.classList.contains('hidden');
@@ -84,10 +88,10 @@ export function createAttendance(getSessionId) {
   }
 
   async function add(uid, name, email) {
-    const sessionId = getSessionId();
-    if (!sessionId) return;
+    const session = getSession();
+    if (!session) return;
     try {
-      await addAttendee(sessionId, uid, { name, email });
+      await addAttendee(session, uid);
       attendees[uid] = { name, email };
       renderAttendees();
       renderOptions();
@@ -99,10 +103,10 @@ export function createAttendance(getSessionId) {
   }
 
   async function remove(uid, name) {
-    const sessionId = getSessionId();
-    if (!sessionId) return;
+    const session = getSession();
+    if (!session) return;
     try {
-      await removeAttendee(sessionId, uid);
+      await removeAttendee(session.id, uid);
       delete attendees[uid];
       renderAttendees();
       renderOptions();

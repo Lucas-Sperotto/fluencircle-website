@@ -17,16 +17,25 @@ function pathSegment(value, name) {
 
 /**
  * Grava presença e índice reverso conjuntamente.
+ *
+ * Privacidade (Issue #10): a presença guarda só a data — nome e e-mail ficam
+ * no perfil (`users`), que só a equipe lê. O índice do aluno guarda o resumo
+ * da sessão (tema e início) para a tela de flashcards não precisar ler
+ * `meeting_sessions`, onde estão as presenças de outras pessoas.
+ *
  * @param {string} sessionId @param {string} uid
- * @param {{name: string, email: string}} attendee
+ * @param {{ topic: string, startedAt: string }} session resumo da sessão
  * @param {string} addedAt data ISO provida pelo serviço
  */
-export function buildAddAttendeeUpdates(sessionId, uid, { name, email }, addedAt) {
+export function buildAddAttendeeUpdates(sessionId, uid, { topic, startedAt }, addedAt) {
   pathSegment(sessionId, 'sessionId');
   pathSegment(uid, 'uid');
+  if (typeof topic !== 'string' || typeof startedAt !== 'string') {
+    throw new TypeError('O índice de presença precisa do tema e do início da sessão.');
+  }
   return {
-    [dbPath(DB_PATHS.sessions, sessionId, 'attendees', uid)]: { name, email, addedAt },
-    [dbPath(DB_PATHS.userSessions, uid, sessionId)]: true,
+    [dbPath(DB_PATHS.sessions, sessionId, 'attendees', uid)]: { addedAt },
+    [dbPath(DB_PATHS.userSessions, uid, sessionId)]: { topic, startedAt },
   };
 }
 

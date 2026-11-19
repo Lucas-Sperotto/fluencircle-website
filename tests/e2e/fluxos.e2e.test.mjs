@@ -49,8 +49,9 @@ describe('E2E [Firebase simulado] fluxos principais', () => {
     await mediator.fill('#attendance-search-bar', 'Ana');
     await mediator.locator('#student-options-list .custom-select-option', { hasText: 'Ana Aluna' }).click();
     await expectToast(mediator, 'Ana Aluna adicionado à lista de presença!');
-    assert.ok(backend.adminGet(`meeting_sessions/${live.sessionId}/attendees/${ACTORS.studentA.uid}`));
-    assert.ok(backend.adminGet(`user_sessions/${ACTORS.studentA.uid}/${live.sessionId}`));
+    // Privacidade (Issue #10): a presença guarda só a data; o índice da aluna, o resumo da sessão.
+    assert.deepEqual(backend.adminGet(`meeting_sessions/${live.sessionId}/attendees/${ACTORS.studentA.uid}`), { addedAt: '2026-11-19T15:00:00.000Z' });
+    assert.deepEqual(backend.adminGet(`user_sessions/${ACTORS.studentA.uid}/${live.sessionId}`), { topic: 'Technology & Daily Life', startedAt: session.startedAt });
     await mediator.locator('#close-attendance-btn').click();
 
     await mediator.locator('#open-translator-btn').click();

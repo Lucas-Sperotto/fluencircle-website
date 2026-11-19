@@ -22,7 +22,7 @@ import { DB_PATHS, dbPath } from './db-paths.js';
  * @property {string} [topic]
  * @property {string} [startedAt]
  * @property {string} [mediatorEmail]
- * @property {Record<string, { name: string, email: string, addedAt: string }>} [attendees]
+ * @property {Record<string, { addedAt: string }>} [attendees] dados antigos podem ter também name/email
  */
 
 /** @returns {Promise<Record<string, Session>>} todas as sessões, por id */
@@ -170,9 +170,11 @@ export function watchCurrentSession(callback) {
 
 /**
  * Marca presença e índice em um único update atômico; propaga falhas de regras.
+ * @param {{ id: string, topic: string, startedAt: string }} session sessão em andamento
+ * @param {string} uid aluno
  */
-export function addAttendee(sessionId, uid, { name, email }) {
-  return update(ref(database), buildAddAttendeeUpdates(sessionId, uid, { name, email }, nowIso()));
+export function addAttendee(session, uid) {
+  return update(ref(database), buildAddAttendeeUpdates(session.id, uid, { topic: session.topic, startedAt: session.startedAt }, nowIso()));
 }
 
 /**

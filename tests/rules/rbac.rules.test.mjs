@@ -131,20 +131,21 @@ describe(`${env.label} RBAC e esquema — regras propostas`, () => {
       await env.denied(env.as(studentA).set(`meeting_sessions/${SESSIONS.anaOnly}/topic`, 'Outro'));
       await env.denied(env.as(studentA).remove(`meeting_sessions/${SESSIONS.anaOnly}`));
     });
+    const indexEntry = { topic: 'Technology & Daily Life', startedAt: '2026-11-10T19:00:00.000Z' };
     test('presença e índice reverso só entram juntos (update multicaminho)', async () => {
       const carla = env.as(mediatorA);
-      const entry = { name: 'Bruno Aluno', email: studentB.email, addedAt: NOW };
+      const entry = { addedAt: NOW };
       await env.denied(carla.set(`meeting_sessions/${SESSIONS.anaOnly}/attendees/${studentB.uid}`, entry));
-      await env.denied(carla.set(`user_sessions/${studentB.uid}/${SESSIONS.anaOnly}`, true));
+      await env.denied(carla.set(`user_sessions/${studentB.uid}/${SESSIONS.anaOnly}`, indexEntry));
       await env.allowed(carla.update('/', {
         [`meeting_sessions/${SESSIONS.anaOnly}/attendees/${studentB.uid}`]: entry,
-        [`user_sessions/${studentB.uid}/${SESSIONS.anaOnly}`]: true,
+        [`user_sessions/${studentB.uid}/${SESSIONS.anaOnly}`]: indexEntry,
       }));
     });
     test('presença não aceita uid sem perfil', async () => {
       await env.denied(env.as(mediatorA).update('/', {
         [`meeting_sessions/${SESSIONS.anaOnly}/attendees/${noProfile.uid}`]: { addedAt: NOW },
-        [`user_sessions/${noProfile.uid}/${SESSIONS.anaOnly}`]: true,
+        [`user_sessions/${noProfile.uid}/${SESSIONS.anaOnly}`]: indexEntry,
       }));
     });
     test('exclusão atômica de sessão, cards e índices: mediador sim, aluno não', async () => {
@@ -261,7 +262,7 @@ describe(`${env.label} RBAC e esquema — regras propostas`, () => {
     test('aluno não se inscreve sozinho em sessão', async () => {
       await env.denied(env.as(studentA).update('/', {
         [`meeting_sessions/${SESSIONS.brunoOnly}/attendees/${studentA.uid}`]: { addedAt: NOW },
-        [`user_sessions/${studentA.uid}/${SESSIONS.brunoOnly}`]: true,
+        [`user_sessions/${studentA.uid}/${SESSIONS.brunoOnly}`]: { topic: 'Travel II', startedAt: '2026-11-17T19:00:00.000Z' },
       }));
     });
   });
