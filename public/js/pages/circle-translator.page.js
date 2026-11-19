@@ -4,10 +4,11 @@
  * Usada nas sessões presenciais: cada tradução feita aqui vira flashcard da
  * sessão que o mediador estiver conduzindo (`current_session`).
  *
- * ATENÇÃO (docs/AUDITORIA.md, achado crítico): para isso funcionar sem login,
- * o banco aceita gravação anônima em `flashcards`. Enquanto as regras e o
- * backend não forem ajustados, todas as telas exibem os textos de forma segura
- * (sem `innerHTML`), o que neutraliza o risco de script injetado.
+ * ATENÇÃO: este frontend ainda tenta salvar cartões diretamente no RTDB
+ * sem login. As regras ATIVAS não foram auditadas; o rascunho de regras
+ * passa a NEGAR escrita anônima, o que impede salvar até existir backend
+ * com controle de sessão, identidade, tamanho e rate limit.
+ * A exibição como texto ajuda contra XSS, mas não resolve autorização.
  */
 import { watchCurrentSession } from '../services/sessions.service.js';
 import { addFlashcard } from '../services/flashcards.service.js';

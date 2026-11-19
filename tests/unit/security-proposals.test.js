@@ -18,3 +18,11 @@ test('exemplo de CSP enumera hosts RTDB legados e regionais', () => {
     assert.ok(csp.includes(host), `CSP omite ${host}`);
   }
 });
+
+test('rascunho RTDB não permite criação anônima de flashcards', () => {
+  const file = new URL('../../docs/firebase/database.rules.proposta.json', import.meta.url);
+  const rules = JSON.parse(readFileSync(file, 'utf8')).rules;
+  // Este teste verifica SOMENTE a forma do rascunho. Emulator é obrigatório.
+  assert.equal(Object.hasOwn(rules.flashcards.$sessionId.$cardId, '.write'), false);
+  assert.match(rules.flashcards.$sessionId['.write'], /auth != null/);
+});

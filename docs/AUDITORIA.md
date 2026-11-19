@@ -10,7 +10,7 @@ Auditoria do commit `dd8a9d8` (21/10/2026) e o que a reorganização para a arqu
 
 | # | Severidade | Achado | Situação |
 | --- | --- | --- | --- |
-| 1 | Crítica | O tradutor público grava flashcards sem login, e as telas internas exibiam esses textos com `innerHTML`: qualquer visitante podia injetar script na sessão de alunos, mediadores e admin. | 🟡 Nenhum texto é mais interpretado como HTML, o que neutraliza o script injetado. O tradutor grava pelo SDK com texto limitado a 300 caracteres. **Falta:** publicar regras que só permitam criar cards na sessão ativa, com tamanho validado (`docs/firebase/`). |
+| 1 | Crítica | O tradutor público grava flashcards sem login, e as telas internas exibiam esses textos com `innerHTML`: qualquer visitante podia injetar script na sessão de alunos, mediadores e admin. | 🟡 Nenhum texto é mais interpretado como HTML, o que neutraliza o script injetado. O tradutor grava pelo SDK com texto limitado a 300 caracteres. **Falta:** persistência pública via backend protegido, regras reais exportadas/testadas e controle antiabuso. **Não publicar** o rascunho como solução pronta. |
 | 2 | Alta | `innerHTML` com dados do banco em 11 pontos. | ✅ Zero usos. Elementos são montados com `h()` (`js/ui/dom.js`). |
 | 3 | Alta | Autorização só no navegador; a guarda das páginas só agia se houvesse papel em cache. | 🟡 As páginas esperam o papel confirmado no banco e sempre barram quem não tem permissão. **Falta:** regras do banco por papel (proposta pronta). |
 | 4 | Alta | `database.rules.json` e `firebase.json` fora do Git. | 🟡 `.gitignore` ajustado; proposta de regras e de hosting em `docs/firebase/`. **Falta:** exportar as regras atuais do console e versionar. |
