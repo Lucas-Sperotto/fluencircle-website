@@ -5,6 +5,8 @@
 
 **Origem:** anexo do responsável, `Auditoria técnica do fluencircle-website(1).pdf` de 18/11/2026. **Formato:** PDF, 15 páginas A4. **SHA-256 esperado:** `0c38e30bf08870e694c69beb0dc381fbdc7907b8b3e44b43a9e1494c362abc2f`.
 
+**SHA-1 Git blob esperado (arquivo exato):** `b8f10a6d856dddf2b234e51a4398dac413114e3d`. O GitHub exibirá esse SHA de blob para o arquivo após upload; ele pode ser comparado diretamente com o objeto Git local, sem necessidade de obter novamente o binário.
+
 ## Estado
 O anexo PDF binário **não foi adicionado ao GitHub nesta PR** porque o conector de escrita disponível neste atendimento permite texto e objetos Git, mas não a transferência direta de bytes do anexo do ChatGPT. Para não criar uma cópia falsa ou incompleta, a transcrição textual foi versionada separadamente em `docs/auditorias/CLAUDE_AUDITORIA_ORIGINAL_TRANSCRICAO.md`. **A transcrição não substitui o PDF nem reproduz seus diagramas.**
 
