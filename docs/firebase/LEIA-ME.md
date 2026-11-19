@@ -31,7 +31,7 @@ Referência: <https://firebase.google.com/docs/database/security/core-syntax>.
 
 ## Matriz de acesso proposta
 
-✅ permitido · ❌ negado · Todos os casos abaixo têm teste em `tests/rules/rbac.rules.test.mjs`.
+✅ permitido · ❌ negado · Casos testados em `tests/rules/` (RBAC, sessão ativa e privacidade).
 
 | Nó | Visitante | Aluno | Mediador | Admin | Observações |
 | --- | --- | --- | --- | --- | --- |
@@ -39,16 +39,17 @@ Referência: <https://firebase.google.com/docs/database/security/core-syntax>.
 | `users/{uid}` | ❌ | lê o **próprio** | lê a lista | lê e grava | papel ∈ {student, mediator, admin}; só admin grava (sem escalada) |
 | `deleted_users/{uid}` | ❌ | lê a **própria** entrada | ❌ | lê e grava | o login consulta a própria entrada |
 | `meetings` (temas) | ❌ | ❌ | lê e grava | lê e grava | título 1–200, ≥ 1 pergunta, sem campos extras |
-| `meeting_sessions` | ❌ | lê (compatibilidade, ver abaixo) | lê e grava | lê e grava | `mediatorEmail` = e-mail do token de quem cria |
-| `…/attendees/{uid}` | ❌ | ❌ | grava **junto** com `user_sessions` | idem | aluno precisa ter perfil |
+| `meeting_sessions` | ❌ | ❌ coleção e sessão inteira; lê só `topic`/`startedAt` da **própria** sessão | lê e grava | lê e grava | `mediatorEmail` = e-mail do token de quem cria |
+| `…/attendees/{uid}` | ❌ | ❌ | grava `{ addedAt }` **junto** com `user_sessions` | idem | **sem nome/e-mail** (PII fica em `users`); aluno precisa ter perfil |
 | `current_session` | **lê** | lê | publica com posse | publica com posse | só id, título, início e posse (sem pessoas); versão +1 na troca de dono; assumir apresentação viva exige `takeoverOf`; presença só do dono — testes em `sessao-ativa.rules.test.mjs` |
-| `flashcards/{sessão}` | ❌ **(não cria card)** | lê (compatibilidade) | lê e grava | lê e grava | frente/verso 1–500, `sessionId` coerente, sessão existente |
+| `flashcards/{sessão}` | ❌ **(não cria card)** | lê **só** decks das próprias sessões (com perfil) | lê e grava | lê e grava | frente/verso 1–500, `sessionId` coerente, sessão existente |
 | `student_reviews/{uid}` | ❌ | lê/grava o **próprio**, só em sessão de que participou | o próprio (estuda qualquer deck) | o próprio | etapa avança **de 1 em 1** (1→2→3) com carimbo ISO |
-| `user_sessions/{uid}` | ❌ | lê o **próprio** | grava (com presença) | grava (com presença) | ninguém se inscreve sozinho |
+| `user_sessions/{uid}` | ❌ | lê o **próprio** | grava `{ topic, startedAt }` (com presença) | idem | ninguém se inscreve sozinho; entradas antigas `true` só leitura |
 | conta sem perfil / revogada | — | ❌ em tudo, exceto ler o próprio `users/{uid}` ou `deleted_users/{uid}` | — | — | |
 
-**Compatibilidade temporária:** nesta etapa qualquer conta com perfil ainda lê `meeting_sessions` e `flashcards`
-inteiros, porque `flashcards.page.js` faz isso. A restrição por presença (Issue #10) entra junto com a mudança da tela.
+**Leitura mínima (Issue #10, ADR-004):** a tela do aluno parte de `user_sessions/{uid}` e lê só os decks das
+próprias sessões; casos em `tests/rules/privacidade.rules.test.mjs`. Dados antigos (presença com nome/e-mail e
+índice `true`) continuam legíveis; o plano offline de migração está em `scripts/migrations/`.
 
 **Limites aceitos e registrados:**
 - As datas do SRS são texto ISO; a regra não consegue comparar com `now`. Um aluno pode registrar um carimbo
