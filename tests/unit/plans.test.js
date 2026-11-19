@@ -51,7 +51,7 @@ describe('horários e agenda', () => {
       date: new Date(2026, 10, 19),
       schedule: {
         planoA_3_0: { topicId: 't1', topicTitle: 'Travel', questions: ['Beach?', 7], meetLink: 'https://meet.example.test/abc' },
-        planoB_1_2: { themeTopic: 'Legado', videoLink: 'javascript:alert(1)' },
+        planoB_1_2: { themeTopic: 'Legado', videoLink: 'javascript:alert(1)', questions: { 1: 'Segunda?', 0: 'Primeira?' } },
       },
     });
     assert.deepEqual(agenda.map((a) => a.slotKey), ['planoB_1_2', 'planoA_1_1', 'planoA_3_0', 'planoB_0_0']);
@@ -62,6 +62,7 @@ describe('horários e agenda', () => {
     assert.equal(wed.monthDay, 18);
     assert.equal(agenda[0].topic, 'Legado', 'aceita os nomes alternativos do PR #2');
     assert.equal(agenda[0].meetLink, '', 'link que não é https é descartado');
+    assert.deepEqual(agenda[0].questions, ['Primeira?', 'Segunda?'], 'lista do RTDB como objeto');
     assert.equal(agenda[1].topic, '');
   });
   test('links seguros e ids de plano', () => {

@@ -39,6 +39,13 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** Posição do dia na semana que começa na segunda (seg = 1 … dom = 7). */
 const mondayFirstOrder = (dayOfWeek) => (dayOfWeek === 0 ? 7 : dayOfWeek);
 
+/** Lista do RTDB (array ou objeto `{ "0": …, "1": … }`) como array de textos, na ordem dos índices. */
+function textList(value) {
+  if (!value || typeof value !== 'object') return [];
+  const entries = Array.isArray(value) ? value.map((v, i) => [i, v]) : Object.entries(value).map(([k, v]) => [Number(k), v]);
+  return entries.sort((a, b) => a[0] - b[0]).map(([, v]) => v).filter((v) => typeof v === 'string');
+}
+
 /**
  * Identificador ISO 8601 da semana da data (no fuso local), ex.: `2026-W47`.
  * A semana começa na segunda e a semana 1 é a que contém a primeira quinta-feira.
@@ -157,7 +164,7 @@ export function buildWeekAgenda({ plans, schedule = {}, date }) {
         topicId: saved.topicId || saved.themeId || '',
         // nomes alternativos: gravações do PR #2 usaram as duas formas
         topic: saved.topicTitle || saved.themeTopic || '',
-        questions: Array.isArray(saved.questions) ? saved.questions.filter((q) => typeof q === 'string') : [],
+        questions: textList(saved.questions),
         meetLink: isSafeMeetLink(meetLink) ? meetLink : '',
       });
     }
