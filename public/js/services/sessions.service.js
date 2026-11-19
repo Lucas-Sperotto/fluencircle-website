@@ -2,11 +2,17 @@
  * @file Sessões de conversação (`meeting_sessions`), presença e sessão ativa.
  *
  * `current_session` é um nó único lido pelo tradutor público para saber em
- * qual sessão salvar os flashcards. Limitação conhecida: dois mediadores ao
- * mesmo tempo sobrescrevem um ao outro (ver docs/ARQUITETURA.md).
+ * qual sessão salvar os flashcards. Desde a Issue #9 ele tem POSSE por aba
+ * (`presenterId`), versão e presença por aba (`live/{presenterId}`): a lógica
+ * de decisão está em domain/presentation-lock.js e as regras do banco
+ * conferem o mesmo protocolo. Migração futura para salas por código/QR:
+ * docs/engenharia/ADR-003-SESSAO-ATIVA.md.
  */
-import { database, ref, get, set, push, update, remove, onValue, onDisconnect } from '../core/firebase.js';
+import { database, ref, get, set, push, update, onValue, onDisconnect, runTransaction } from '../core/firebase.js';
 import { nowIso } from '../domain/format.js';
+import {
+  publicSessionFrom, ownershipStatus, publishTransaction, unpublishTransaction, reconnectTransaction,
+} from '../domain/presentation-lock.js';
 import { buildAddAttendeeUpdates, buildRemoveAttendeeUpdates, buildDeleteSessionUpdates } from './session-updates.js';
 import { DB_PATHS, dbPath } from './db-paths.js';
 
@@ -27,55 +33,138 @@ export async function listSessions() {
 
 /**
  * Registra o início de uma sessão.
- * @param {{ templateId: string, topic: string, mediatorEmail: string }} data
+ * @param {{ templateId: string, topic: string, mediatorEmail: string, startedAt?: string }} data
  * @returns {Promise<string>} id da sessão
  */
-export async function createSession({ templateId, topic, mediatorEmail }) {
+export async function createSession({ templateId, topic, mediatorEmail, startedAt = nowIso() }) {
   const sessionRef = push(ref(database, DB_PATHS.sessions));
-  await set(sessionRef, { templateId, topic, startedAt: nowIso(), mediatorEmail, attendees: {} });
+  await set(sessionRef, { templateId, topic, startedAt, mediatorEmail, attendees: {} });
   return sessionRef.key;
 }
 
 /**
- * Publica a sessão como ativa para o tradutor público.
- *
- * Usa `onDisconnect`: se a aba fechar ou a conexão cair, o próprio servidor
- * apaga `current_session` (antes dependia do `beforeunload`, que falha com
- * frequência). Ao reconectar, a sessão é publicada de novo.
- *
- * @param {{ sessionId: string, topic: string }} data
- * @returns {Promise<() => Promise<void>>} função que encerra a publicação
+ * Id aleatório (128 bits, base64url) que identifica ESTA aba como dona da
+ * apresentação. Não é segredo nem dado pessoal; só evita colisão entre abas.
  */
-export async function publishCurrentSession({ sessionId, topic }) {
+export function createPresenterId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** @returns {Promise<import('../domain/presentation-lock.js').CurrentSession | null>} */
+export async function getCurrentSession() {
+  const snapshot = await get(ref(database, DB_PATHS.currentSession));
+  return snapshot.exists() ? snapshot.val() : null;
+}
+
+/**
+ * @typedef {'live'|'reconnecting'|'offline'|'taken-over'|'ended'} PresentationStatus
+ * @typedef {Object} PresentationHandle
+ * @property {string} presenterId
+ * @property {() => Promise<'removed'|'not-owner'|'already-gone'>} stop encerra a publicação (só remove se for a dona)
+ */
+
+/**
+ * Publica a sessão como ativa para o tradutor público, com posse desta aba.
+ *
+ * Usa transação: se outra aba/mediador estiver no ar e `takeover` for falso,
+ * NADA é gravado e o resultado traz o conflito para a tela perguntar.
+ *
+ * @param {{ sessionId: string, topic: string, startedAt: string }} session
+ * @param {{ presenterId: string, takeover?: boolean, onStatusChange?: (status: PresentationStatus) => void }} options
+ * @returns {Promise<{ status: 'published', presentation: PresentationHandle } | { status: 'conflict', current: object }>}
+ */
+export async function publishCurrentSession({ sessionId, topic, startedAt }, { presenterId, takeover = false, onStatusChange = () => {} }) {
   const currentRef = ref(database, DB_PATHS.currentSession);
-  const payload = { sessionId, topic, startedAt: nowIso() };
+  const liveRef = ref(database, dbPath(DB_PATHS.currentSession, 'live', presenterId));
 
-  await onDisconnect(currentRef).remove();
-  await set(currentRef, payload);
+  const publish = publishTransaction({ sessionId, topic, startedAt, presenterId }, { takeover });
+  const result = await runTransaction(currentRef, publish.update);
+  if (!result.committed) return { status: 'conflict', current: publish.lastPlan()?.current ?? result.snapshot.val() };
 
-  const stopWatching = onValue(ref(database, '.info/connected'), (snapshot) => {
-    if (snapshot.val() !== true) return;
-    onDisconnect(currentRef).remove()
-      .then(() => set(currentRef, payload))
-      .catch((error) => console.error('Erro ao republicar a sessão ativa:', error));
+  // Só agora (já dona) registra a remoção da PRÓPRIA presença ao cair.
+  // Se o registro falhar, desfaz a publicação para não deixar presença eterna.
+  try {
+    await onDisconnect(liveRef).remove();
+  } catch (error) {
+    await runTransaction(currentRef, unpublishTransaction(presenterId).update).catch(() => {});
+    throw error;
+  }
+  return { status: 'published', presentation: watchPresentation({ presenterId, currentRef, liveRef, onStatusChange }) };
+}
+
+/** Acompanha posse e conexão de uma apresentação publicada por esta aba. */
+function watchPresentation({ presenterId, currentRef, liveRef, onStatusChange }) {
+  let lastStatus = 'live';
+  let connected = true;
+  let wasDisconnected = false;
+  let stopped = false;
+  let ending = false; // durante o próprio encerramento, a remoção do nó não é "encerrada por outra tela"
+  const emit = (status) => {
+    if (stopped || ending || status === lastStatus) return;
+    lastStatus = status;
+    onStatusChange(status);
+  };
+
+  // Mudanças de dono em tempo real (outra aba assumiu ou alguém encerrou).
+  // Também mantém o cache local, que as transações usam na primeira tentativa.
+  const stopOwnership = onValue(currentRef, (snapshot) => {
+    const status = ownershipStatus(snapshot.val(), presenterId);
+    emit(!connected && status === 'offline' ? 'reconnecting' : status);
   });
 
-  return async function unpublish() {
-    stopWatching();
-    await onDisconnect(currentRef).cancel().catch(() => {});
-    await remove(currentRef);
+  const stopConnection = onValue(ref(database, '.info/connected'), async (snapshot) => {
+    connected = snapshot.val() === true;
+    if (!connected) {
+      wasDisconnected = true;
+      emit('reconnecting');
+      return;
+    }
+    if (!wasDisconnected) return;
+    wasDisconnected = false;
+    try {
+      // O onDisconnect anterior já disparou: registra de novo e restaura a presença, se ainda for a dona.
+      await onDisconnect(liveRef).remove();
+      const reconnect = reconnectTransaction(presenterId);
+      const restored = await runTransaction(currentRef, reconnect.update);
+      emit(restored.committed && reconnect.lastPlan()?.outcome === 'write'
+        ? 'live'
+        : ownershipStatus(restored.snapshot.val(), presenterId));
+    } catch (error) {
+      console.error('Não foi possível restaurar a sessão ativa após reconectar:', error);
+      emit('offline');
+    }
+  });
+
+  return {
+    presenterId,
+    async stop() {
+      ending = true;
+      try {
+        const end = unpublishTransaction(presenterId);
+        await runTransaction(currentRef, end.update);
+        stopped = true;
+        stopOwnership();
+        stopConnection();
+        await onDisconnect(liveRef).cancel().catch(() => {});
+        const outcome = end.lastPlan()?.outcome;
+        return outcome === 'remove' ? 'removed' : outcome;
+      } finally {
+        ending = false;
+      }
+    },
   };
 }
 
 /**
- * Observa a sessão ativa (usado pelo tradutor público).
+ * Observa a sessão ativa (usado pelo tradutor público). Só entrega sessão
+ * "no ar" (dona conectada) e só id e título.
  * @param {(session: { sessionId: string, topic: string } | null) => void} callback
  * @returns {() => void} função para parar de observar
  */
 export function watchCurrentSession(callback) {
   return onValue(ref(database, DB_PATHS.currentSession), (snapshot) => {
-    const value = snapshot.val();
-    callback(value && value.sessionId ? value : null);
+    callback(publicSessionFrom(snapshot.val()));
   });
 }
 
