@@ -30,7 +30,7 @@ Não precisa de conta Google nem de login no Firebase: o projeto de demonstraç�
 ```bash
 git clone https://github.com/Lucas-Sperotto/fluencircle-website.git
 cd fluencircle-website
-npm install                          # firebase-tools, rules-unit-testing, firebase (testes) e playwright
+npm ci                               # instala versões exatas do package-lock.json
 npx playwright install chromium      # navegador dos testes E2E (só uma vez)
 npm test                             # deve terminar com "fail 0"
 ```

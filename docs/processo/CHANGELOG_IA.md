@@ -15,13 +15,13 @@ Este documento atribui **funções de assistência**, não forja autoria de comm
 | #22 | ChatGPT | Exportador de snapshot pinado e logs para Gemini | Merge na main; workflow de exportação validado |
 | #23 | Gemini (parecer encaminhado) + ChatGPT (normalização/importação) | 9 achados e 4 artefatos de auditoria | **Merge na main; CI 44514494925 aprovada**; sem testes dinâmicos pelo Gemini |
 | #26 | ChatGPT (correções) com achados de Gemini | SRS inválido e datas, CSP regional, contenção de regra RTDB **somente em proposta**, relatório final | **Merge na main; CI 44515234156: 30/30 testes** |
-| (Issue #28, PRs Draft a abrir) | Claude (implementação; plano do ChatGPT) | Emulator e ambiente isolado, regras geradas e testadas (simulador), concorrência da sessão ativa, leitura mínima/PII, tradutor e contas, CI em 3 jobs, E2E + a11y, documentação de entrega | **Não integrado**; evidências em `docs/auditorias/CLAUDE_HANDOFF_FINAL.md`; Emulator e CI pendentes; revisão ChatGPT pendente |
+| #29–#34 | Claude (31 commits originais) + ChatGPT (auditoria e correção de corrida em testes) | Emulator e regras, E2E, concorrência de sessão, privacidade, tradução/contas, documentação do aluno | **Mesclado na main** com SHAs originais preservados; **65/65 testes no Emulator oficial e 44/44 E2E com Firebase simulado** em CI #44537468469; nenhum deploy |
 | Futuro | Responsável + IAs revisoras | Regras ativas, backend Render, credencial histórica, staging e release | **Aberto; NO-GO produção** |
 
 ## Compromissos
 
 1. Cada etapa nova deve indicar Issue, SHA de base, escopo, IA, comando, testes observados, testes não executados e riscos.
 2. As métricas 79 E2E/52 screenshots são relato histórico do Claude; não são reproduções executadas por ChatGPT.
-3. Nenhuma execução do Firebase Emulator, inspeção do Render ou rotação de credencial foi concluída neste ciclo.
+3. **Atualização da auditoria ChatGPT em 19/11/2026:** Firebase Emulator oficial foi executado na CI (65/65); **Render e rotação de credencial histórica continuam não verificados**.
 4. Merge de código para auditoria **não é** liberação de deploy. Gates estão em `docs/operacao/SEGURANCA_E_DEPLOY.md`.
 5. A revisão Gemini (quando ocorrer) deve apresentar discordâncias e testes, nunca apenas aprovar relatórios anteriores.
