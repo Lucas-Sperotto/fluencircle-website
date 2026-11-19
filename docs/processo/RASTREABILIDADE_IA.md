@@ -58,6 +58,7 @@ Aprovação humana: pendente/aprovada + referência
 | CG-001 | ChatGPT | Validação do ZIP e CI (#3); reparos de dados/UX (#16); auditoria própria (#17) | 25/25 testes unitários, GitHub Actions aprovadas; testes externos pendentes | **Integrado, sujeito a testes no Emulator** |
 | GM-001 | Gemini | Revisão cruzada independente, planejada | Nenhum resultado ainda | Planejada |
 | CG-002 | ChatGPT | Revisão final, planejada | Depende de código e evidências novos | Planejada |
+| CL-002 | Claude | Hardening e entrega ao aluno (Issue #28): 31 commits em 6 branches empilhados | Unitários 87/87, regras no simulador 65/65, E2E 44/44 executados localmente; Emulator e CI **não executados**; ver `docs/auditorias/CLAUDE_HANDOFF_FINAL.md` | **Em revisão (Draft), sem merge** |
 
 ## Critério de fechamento
 Uma Issue só é encerrada quando há PR relacionado, testes/evidências suficientes e decisão registrada. Um PR só pode ser mesclado após revisão dos riscos da sua área e aprovação humana. **Sem merge automático de mudanças de segurança ou de dados.**

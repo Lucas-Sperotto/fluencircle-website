@@ -21,7 +21,7 @@ flowchart TD
 
 | Camada | Pode importar | Responsabilidade |
 | --- | --- | --- |
-| `config/` | nada | configuração do Firebase, endereço do backend, limites |
+| `config/` | só `config/` | ambiente (Emulator × produção), configuração do Firebase, endereço do backend, limites |
 | `core/` | `config` | inicializar o Firebase (único arquivo que importa o CDN), papéis, cache da sessão, endereços das páginas |
 | `domain/` | nada | regras de negócio puras: revisão espaçada, nomes, perguntas, datas, prompt de tradução |
 | `services/` | `core`, `domain`, `config` | ler e gravar no banco; chamar o backend |

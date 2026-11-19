@@ -47,25 +47,24 @@ node scripts/verify-architecture.mjs  # camadas e sinks HTML proibidos
 ## Estrutura
 
 ```
-public/
-├── *.html                 uma página por tela (nomes mantidos: links e QR code continuam válidos)
-├── assets/                favicon e cursores dos slides
-├── css/
-│   ├── main.css           único CSS carregado; importa os demais NA ORDEM da cascata
-│   ├── base/ layout/ components/ pages/ responsive/
-│   └── overrides/         classes que substituíram os antigos atributos style=
-└── js/
-    ├── config/            configuração (Firebase, backend, limites)
-    ├── core/              Firebase (único ponto de contato com o CDN), papéis, sessão, navegação
-    ├── domain/            regras puras e testáveis: revisão espaçada, nomes, datas, prompt
-    ├── services/          único acesso ao banco e ao backend
-    ├── ui/                componentes: moldura, toast, diálogo, dropdown, pilha de cards, DOM seguro
-    └── pages/             um script de entrada por página
-docs/                      arquitetura, auditoria, migração e propostas para o Firebase
-tests/unit/                testes da camada domain/
+public/                    site (sem build): 8 páginas, assets, css/ e js/ em camadas
+├── js/config/             ambiente (Emulator × produção), Firebase, backend e limites
+├── js/core/               único ponto do SDK Firebase (CDN), papéis, navegação
+├── js/domain/             regras puras: SRS, posse da sessão ativa, índice do aluno, erros
+├── js/services/           único acesso ao banco e ao backend
+├── js/ui/                 componentes: moldura, selo de ambiente, DOM seguro, diálogos
+└── js/pages/              um script de entrada por página
+firebase/rules/            FONTE comentada das regras propostas (gera docs/firebase/*.json)
+firebase.emulator.json     configuração só do Emulator (não existe firebase.json na raiz de propósito)
+scripts/                   verificações, gerador de regras, carga do Emulator, migração offline, medição
+tests/unit/                testes puros (node --test)
+tests/rules/               matriz de acesso (Emulator ou simulador)
+tests/e2e/                 Playwright com Firebase simulado + acessibilidade básica
+tests/fixtures/            dados sintéticos compartilhados
+docs/                      engenharia, entrega ao aluno, operação, auditorias e processo
 ```
 
-Detalhes e diagrama em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
+Detalhes: [`docs/entrega/ARQUITETURA_E_FLUXOS.md`](docs/entrega/ARQUITETURA_E_FLUXOS.md) e [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
 
 ## Regras do código
 
@@ -74,7 +73,9 @@ Detalhes e diagrama em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
 3. **`domain/` não importa nada.** São funções puras, cobertas por `tests/unit/`.
 4. **Toda página interna começa com `initProtectedPage()`**, que exige login, aplica o papel no menu e barra quem não tem permissão.
 5. **Sem `style=` no HTML e sem estilos montados em strings no JS.** Estilos novos vão no arquivo CSS da seção; a ordem dos `@import` em `main.css` importa.
-6. Comentários e textos em português; nomes no código em inglês.
+6. **Regras do banco só pela fonte** `firebase/rules/database.rules.source.mjs` (`npm run rules:build`), sempre com teste em `tests/rules/`.
+7. **Testes nunca usam o Firebase de produção**: Emulator (`npm run test:rules`), simulador ou Firebase simulado nos E2E, com dados de `tests/fixtures/`.
+8. Comentários e textos em português; nomes no código em inglês.
 
 ## Publicação: BLOQUEADA até auditoria de segurança
 
@@ -84,28 +85,37 @@ Desenvolvimento local usa **somente o Firebase Emulator** (seleção automática
 
 ## Segurança
 
-O navegador não é barreira de segurança: esconder botões por papel é só conveniência. A proteção dos dados depende das **regras do Realtime Database**. Ações pendentes (credencial no histórico, regras reais, tradução pública, backend, privacidade e concorrência) estão no [relatório independente](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md). O arquivo [`docs/AUDITORIA.md`](docs/AUDITORIA.md) é o relato **histórico da reorganização do Claude** e não substitui a revisão independente.
+O navegador não é barreira de segurança: esconder botões por papel é só conveniência. A proteção dos dados depende das **regras do Realtime Database** — a proposta testada fica em `firebase/rules/` (matriz em [`docs/engenharia/MATRIZ_DE_ACESSO.md`](docs/engenharia/MATRIZ_DE_ACESSO.md)). Concorrência de mediadores e leitura mínima do aluno foram tratadas no código (ADR-003 e ADR-004); regras reais, backend, credencial histórica e publicação continuam pendentes ([limitações](docs/entrega/LIMITACOES_E_PENDENCIAS.md)).
 
 ## Documentação
 
-- [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — camadas, fluxos, modelo de dados e próximos passos
-- [`docs/AUDITORIA.md`](docs/AUDITORIA.md) — achados da auditoria e o que foi corrigido
-- [`docs/MIGRACAO.md`](docs/MIGRACAO.md) — de onde veio cada arquivo e o que mudou de comportamento
-- [`docs/firebase/LEIA-ME.md`](docs/firebase/LEIA-ME.md) — regras do banco e configuração do hosting
-- [`docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md`](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md) — análise independente, riscos P0/P1 e critérios GO/NO-GO
-- [`docs/operacao/SEGURANCA_E_DEPLOY.md`](docs/operacao/SEGURANCA_E_DEPLOY.md) — staging, segredos, regras, backup e autorização de release
-- [`docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md`](docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md) — requisitos e casos de uso por papel
-- [`docs/usuario/MANUAL_DO_USUARIO.md`](docs/usuario/MANUAL_DO_USUARIO.md) — guia para visitante, aluno, mediador e administrador
-- [`docs/diagramas/DIAGRAMAS.md`](docs/diagramas/DIAGRAMAS.md) — 9 diagramas Mermaid (AS-IS e TO-BE)
-- [`docs/engenharia/ADR-001-ARQUITETURA.md`](docs/engenharia/ADR-001-ARQUITETURA.md) — decisão de preservar módulos sem build
-- [`docs/processo/CHANGELOG_IA.md`](docs/processo/CHANGELOG_IA.md) — autoria atribuída e trilha de PRs por IA
-- [`prompts/GEMINI_REVISAO_INDEPENDENTE.md`](prompts/GEMINI_REVISAO_INDEPENDENTE.md) — roteiro original da revisão cruzada
-- [`docs/auditorias/GEMINI_AUDITORIA.md`](docs/auditorias/GEMINI_AUDITORIA.md) — revisão Gemini recebida e seus 9 achados
-- [`docs/auditorias/GEMINI_TESTES.md`](docs/auditorias/GEMINI_TESTES.md) — testes próprios versus logs de terceiros
-- [`docs/auditorias/GEMINI_FINDINGS.json`](docs/auditorias/GEMINI_FINDINGS.json) — catálogo estruturado dos achados
-- [`docs/auditorias/GEMINI_HANDOFF.md`](docs/auditorias/GEMINI_HANDOFF.md) — decisões pendentes e recomendações
-- [`docs/auditorias/CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md`](docs/auditorias/CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md) — confronto final da revisão com o código
-- [`docs/processo/ENTREGA_FINAL_2026-11-19.md`](docs/processo/ENTREGA_FINAL_2026-11-19.md) — status de PRs, testes e pendências de produção
+**Comece por aqui (entrega ao aluno):**
+- [`docs/entrega/GUIA_DO_ALUNO.md`](docs/entrega/GUIA_DO_ALUNO.md) — instalação, demonstração local, testes e como continuar
+- [`docs/entrega/ARQUITETURA_E_FLUXOS.md`](docs/entrega/ARQUITETURA_E_FLUXOS.md) — módulos, dados, fluxos, frontend × backend
+- [`docs/entrega/MATRIZ_DE_TESTES.md`](docs/entrega/MATRIZ_DE_TESTES.md) — comandos executados, resultados e o que não provam
+- [`docs/entrega/LIMITACOES_E_PENDENCIAS.md`](docs/entrega/LIMITACOES_E_PENDENCIAS.md) — local × produção × futuro
+- [`docs/entrega/CHECKLIST_FINAL.md`](docs/entrega/CHECKLIST_FINAL.md) — aceite e critérios GO/NO-GO
+
+**Engenharia:**
+- [`docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md`](docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md) — requisitos, casos de uso e rastreabilidade
+- [`docs/engenharia/MATRIZ_DE_ACESSO.md`](docs/engenharia/MATRIZ_DE_ACESSO.md) — quem acessa o quê (interface e dados), com testes
+- ADRs: [001 arquitetura](docs/engenharia/ADR-001-ARQUITETURA.md) · [002 ambientes e regras](docs/engenharia/ADR-002-AMBIENTES-E-REGRAS.md) · [003 sessão ativa](docs/engenharia/ADR-003-SESSAO-ATIVA.md) · [004 privacidade](docs/engenharia/ADR-004-PRIVACIDADE-E-LEITURA.md)
+- [`docs/diagramas/DIAGRAMAS.md`](docs/diagramas/DIAGRAMAS.md) — 14 diagramas Mermaid (AS-IS e TO-BE)
+- [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — camadas, ciclo das páginas, modelo de dados, CSS
+- [`docs/firebase/LEIA-ME.md`](docs/firebase/LEIA-ME.md) — regras, Emulator e hosting
+- [`docs/backend/CONTRATO_BACKEND.md`](docs/backend/CONTRATO_BACKEND.md) — backend controlado proposto (bloqueado) e modelo de ameaças
+
+**Uso e operação:**
+- [`docs/usuario/MANUAL_DO_USUARIO.md`](docs/usuario/MANUAL_DO_USUARIO.md) — manual por perfil
+- [`docs/operacao/SEGURANCA_E_DEPLOY.md`](docs/operacao/SEGURANCA_E_DEPLOY.md) — ambientes, segredos, gates e decisão
+- [`docs/operacao/BACKUP_E_ROLLBACK.md`](docs/operacao/BACKUP_E_ROLLBACK.md) — backup, restauração e rollback
+- [`docs/operacao/DEPENDENCIAS.md`](docs/operacao/DEPENDENCIAS.md) — dependências, versões e licenças
+
+**Auditoria e processo (histórico):**
+- [`docs/auditorias/CLAUDE_HANDOFF_FINAL.md`](docs/auditorias/CLAUDE_HANDOFF_FINAL.md) — entrega desta etapa para revisão do ChatGPT
+- [`docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md`](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md), [`GEMINI_AUDITORIA.md`](docs/auditorias/GEMINI_AUDITORIA.md), [`CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md`](docs/auditorias/CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md)
+- [`docs/AUDITORIA.md`](docs/AUDITORIA.md) e [`docs/MIGRACAO.md`](docs/MIGRACAO.md) — registro histórico da reorganização Claude
+- [`docs/processo/CHANGELOG_IA.md`](docs/processo/CHANGELOG_IA.md) e [`RASTREABILIDADE_IA.md`](docs/processo/RASTREABILIDADE_IA.md) — atribuição e processo
 
 ## Licença
 

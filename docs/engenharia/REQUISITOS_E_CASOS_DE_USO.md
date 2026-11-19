@@ -115,3 +115,21 @@ Essas respostas devem ser registradas como ADR/requisitos antes de alterações 
 | RF-06 / CA-04 | Presença e índice coerentes | PR #16; `session-updates.js`; 6 testes puros; CI aprovada | Não avaliado no Emulator |
 | RF-04 / UC-01 | Início único e encerramento recuperável | PR #16; `presentation.page.js` | Dois mediadores ainda podem conflitar |
 | RF-07 / UC-02 | Resposta tardia não migra para outra sessão | PR #16; `domain/active-session.js` com 3 testes unitários | Não resolve spam nem backend |
+
+## 10. Rastreabilidade da etapa de hardening (Claude, 19/11/2026)
+
+Evidências e limites completos em `docs/entrega/MATRIZ_DE_TESTES.md`. "Simulado" = Firebase simulado/simulador de
+regras; "Emulator" = pendente de execução na CI.
+
+| Requisito / critério | Mudança | Evidência | Limite atual |
+| --- | --- | --- | --- |
+| RF-01, CA-01 / RNF-01 | Proposta de regras com negação padrão, escalada de papel negada, conta sem perfil e revogada sem acesso | `tests/rules/rbac.rules.test.mjs` (simulado 40/40); E2E perfis | Emulator pendente; regras ativas desconhecidas |
+| RF-07, CA-02 | Escrita anônima de cards negada; tradutor informa o que aconteceu; Emulator não tenta gravar | R rbac + E tradutor-contas | Backend controlado **não implementado** (bloqueado) |
+| RF-04, UC-01, CA-03 | Posse por aba, versão, confirmação para assumir, queda/retorno (ADR-003) | U presentation-lock; R sessao-ativa (simulado 13/13); E concorrencia (5) | Uma sessão pública por vez; Emulator pendente |
+| RF-06, CA-04 | Presença e índice obrigatoriamente na mesma escrita (regra) | R rbac/privacidade; E fluxos | Remoção de um só lado não é bloqueada por regra |
+| RF-08, RF-09, CA-05 | Etapa SRS só +1 com carimbo; aluno só em sessão de que participou | R rbac; U srs; E fluxos | Prazos não verificáveis nas regras |
+| CA-06, RNF-02, RNF-03 | Aluno lê só o próprio índice e decks; presença sem PII (ADR-004) | R privacidade (simulado 12/12); E privacidade; medição sintética −83,3% | Dados antigos com PII até a migração |
+| RF-11, CA-07 | Criação de conta desfaz o login se o perfil falhar | U account-creation; E tradutor-contas | Backend com Admin SDK pendente |
+| RNF-06, RNF-07 | CI em três jobs sem deploy; Emulator local isolado e verificável | `.github/workflows/ci.yml`; U emulator-safety/environment; E ambiente | CI ainda não executada no GitHub |
+| RNF-04 | Checagens básicas de acessibilidade e teclado nas 8 páginas | E acessibilidade (12) | Auditoria WCAG completa pendente |
+
