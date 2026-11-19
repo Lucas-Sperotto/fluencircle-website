@@ -15,7 +15,7 @@ Feito com HTML, CSS e JavaScript puros (módulos ES), **sem etapa de build**, so
 | `set-meeting.html` | mediador, admin | temas e perguntas de apoio |
 | `manage-meetings.html` | mediador, admin | histórico de sessões e edição dos flashcards |
 | `admin.html` | admin | contas e papéis |
-| `circle-translator.html` | público, sem login | tradutor das sessões presenciais (salva flashcards na sessão ativa) |
+| `circle-translator.html` | público, sem login | tradutor das sessões presenciais; salvamento público direto ainda depende de regras/backend e não é liberado no demo |
 
 ## Como rodar localmente (sempre isolado da produção)
 
@@ -24,7 +24,7 @@ usa sempre o Firebase Emulator** com o projeto fictício `demo-fluencircle-audit
 (`public/js/config/environment.js`). Não há como apontar a máquina local para a produção sem alterar código.
 
 ```bash
-npm install                # Node 20+ e Java 21+ (o Emulator do firebase-tools 15 exige Java 21)
+npm ci                     # Node 20+ e Java 21+ (o Emulator do firebase-tools 15 exige Java 21)
 npm run emulators          # terminal 1: Auth, Realtime Database, Hosting (http://127.0.0.1:5050) e UI (4000)
 npm run emulators:seed     # terminal 2: contas e dados sintéticos (senha: fluencircle-demo)
 ```
@@ -36,7 +36,7 @@ ficam sem dados. Detalhes e contas de demonstração: [`docs/firebase/LEIA-ME.md
 
 ```bash
 npm test                          # unitários (domain/, serviços puros, configuração, simulador) — sem rede
-npm run test:rules                # regras RTDB no Firebase Emulator (prova oficial; precisa de npm install + Java 21)
+npm run test:rules                # regras RTDB no Firebase Emulator (regras no Emulator oficial; precisa de npm ci + Java 21)
 npm run test:rules:sim            # mesma matriz no simulador local (pré-verificação offline; não é o Emulator)
 npm run test:e2e                  # E2E e acessibilidade básica (Playwright; Firebase simulado com as regras propostas)
 npm run rules:check               # JSON das regras em sincronia com a fonte comentada
