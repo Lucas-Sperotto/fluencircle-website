@@ -17,24 +17,30 @@ Feito com HTML, CSS e JavaScript puros (módulos ES), **sem etapa de build**, so
 | `admin.html` | admin | contas e papéis |
 | `circle-translator.html` | público, sem login | tradutor das sessões presenciais (salva flashcards na sessão ativa) |
 
-## Como rodar localmente
+## Como rodar localmente (sempre isolado da produção)
 
-Os módulos ES não funcionam abrindo o arquivo direto (`file://`): sirva a pasta `public/` por HTTP.
+Os módulos ES não funcionam abrindo o arquivo direto (`file://`): sirva por HTTP. **Em `localhost`/`127.0.0.1` o site
+usa sempre o Firebase Emulator** com o projeto fictício `demo-fluencircle-audit` e mostra um selo amarelo no rodapé
+(`public/js/config/environment.js`). Não há como apontar a máquina local para a produção sem alterar código.
 
 ```bash
-npm run serve        # Python: http://localhost:5501
-# ou: extensão Live Server do VS Code (porta 5501)
-# ou: firebase serve --only hosting
+npm install                # Node 20+ e Java 21+ (o Emulator do firebase-tools 15 exige Java 21)
+npm run emulators          # terminal 1: Auth, Realtime Database, Hosting (http://127.0.0.1:5050) e UI (4000)
+npm run emulators:seed     # terminal 2: contas e dados sintéticos (senha: fluencircle-demo)
 ```
 
-O site aponta para o projeto Firebase `fluentech-1e18a` (configuração em `public/js/config/firebase.config.js`). **Rodar localmente usa os dados de produção.** Para testar sem riscos, crie um projeto Firebase de testes e troque os valores desse arquivo.
+Sem Java, ainda é possível abrir as páginas com `npm run serve` (http://localhost:5501), mas sem banco elas
+ficam sem dados. Detalhes e contas de demonstração: [`docs/firebase/LEIA-ME.md`](docs/firebase/LEIA-ME.md).
 
 ## Testes
 
 ```bash
-npm test             # testes unitários de domain/ e mapas de serviços (Node 20+, sem dependências)
-node scripts/verify-static.mjs   # verifica arquivos locais e propostas JSON
-node scripts/verify-architecture.mjs  # valida camadas e sinks HTML proibidos
+npm test                          # unitários (domain/, serviços puros, configuração, simulador) — sem rede
+npm run test:rules                # regras RTDB no Firebase Emulator (prova oficial; precisa de npm install + Java 21)
+npm run test:rules:sim            # mesma matriz no simulador local (pré-verificação offline; não é o Emulator)
+npm run rules:check               # JSON das regras em sincronia com a fonte comentada
+node scripts/verify-static.mjs    # arquivos locais e JSON de configuração
+node scripts/verify-architecture.mjs  # camadas e sinks HTML proibidos
 ```
 
 ## Estrutura
@@ -73,7 +79,7 @@ Detalhes e diagrama em [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).
 
 **NÃO execute deploy em produção a partir deste snapshot.** O merge na `main` preserva um baseline para engenharia e auditoria, não uma release. As regras reais do Firebase ainda precisam ser exportadas/testadas; o tradutor público, o backend Render e sessões simultâneas possuem riscos abertos. Consulte [gates de implantação](docs/operacao/SEGURANCA_E_DEPLOY.md) e [auditoria independente](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md).
 
-Ambientes de desenvolvimento devem utilizar **projeto Firebase de staging ou Emulator isolado**. A CI executa somente verificações offline; ela não publica hosting, regras ou funções.
+Desenvolvimento local usa **somente o Firebase Emulator** (seleção automática por endereço). A CI roda testes offline e o Emulator dentro do runner, com projeto `demo-*`; ela não publica hosting, regras ou funções e não usa segredos.
 
 ## Segurança
 

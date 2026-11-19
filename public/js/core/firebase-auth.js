@@ -6,16 +6,25 @@
  */
 import {
   getAuth,
+  connectAuthEmulator,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { app, initializeApp } from './firebase.js';
-import { firebaseConfig } from '../config/firebase.config.js';
+import { currentEnvironment } from '../config/environment.js';
+
+/** Liga a instância ao Auth Emulator quando o ambiente é local. */
+function connectIfEmulator(authInstance) {
+  if (currentEnvironment.emulators) {
+    connectAuthEmulator(authInstance, currentEnvironment.emulators.authUrl, { disableWarnings: true });
+  }
+  return authInstance;
+}
 
 /** Sessão de autenticação do usuário que está usando o site. */
-export const auth = getAuth(app);
+export const auth = connectIfEmulator(getAuth(app));
 
 const SECONDARY_APP_NAME = 'SecondaryRegistrationApp';
 let secondaryAuth = null;
@@ -26,13 +35,13 @@ let secondaryAuth = null;
  * O `createUserWithEmailAndPassword` do SDK web sempre loga a conta recém-criada.
  * Criar a conta numa segunda instância evita derrubar a sessão do administrador.
  * (O ideal é mover a criação de contas para o backend com o Admin SDK — ver
- * docs/AUDITORIA.md.)
+ * Issue #8.)
  *
  * @returns {import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js').Auth}
  */
 export function getSecondaryAuth() {
   if (!secondaryAuth) {
-    secondaryAuth = getAuth(initializeApp(firebaseConfig, SECONDARY_APP_NAME));
+    secondaryAuth = connectIfEmulator(getAuth(initializeApp(currentEnvironment.firebase, SECONDARY_APP_NAME)));
   }
   return secondaryAuth;
 }

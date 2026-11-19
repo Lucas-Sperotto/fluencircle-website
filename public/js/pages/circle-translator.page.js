@@ -16,6 +16,7 @@ import { translateText } from '../services/translate.service.js';
 import { TRANSLATOR_MAX_LENGTH } from '../config/app.config.js';
 import { canSaveTranslationToSession } from '../domain/active-session.js';
 import { byId } from '../ui/dom.js';
+import { mountEnvironmentBadge } from '../ui/environment-badge.js';
 
 /** Tema gravado no flashcard quando a sessão ativa não informa um. */
 const DEFAULT_TOPIC = 'Circle Tradutor';
@@ -83,6 +84,7 @@ async function handleTranslate() {
   }
 }
 
+mountEnvironmentBadge();
 sourceInput.maxLength = TRANSLATOR_MAX_LENGTH;
 translateButton.addEventListener('click', handleTranslate);
 sourceInput.addEventListener('keydown', (event) => {

@@ -5,7 +5,18 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/unit/*.test.js",
+    "test:rules": "firebase emulators:exec --config firebase.emulator.json --project demo-fluencircle-audit --only database \"node scripts/test-rules.mjs --driver=emulator\"",
+    "test:rules:sim": "node scripts/test-rules.mjs --driver=simulator",
+    "rules:build": "node scripts/build-rules.mjs",
+    "rules:check": "node scripts/build-rules.mjs --check",
+    "emulators": "firebase emulators:start --config firebase.emulator.json --project demo-fluencircle-audit",
+    "emulators:seed": "node scripts/emulator/seed.mjs",
     "serve": "python3 -m http.server 5501 --directory public"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.1",
+    "firebase": "^12.0.0",
+    "firebase-tools": "15.37.0"
   },
   "engines": {
     "node": ">=20"

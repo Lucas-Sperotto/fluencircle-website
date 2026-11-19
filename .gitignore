@@ -18,8 +18,10 @@ public/js/env.js
 node_modules/
 #Node js libraries
 
-# Firebase cache
+# Firebase cache e dados exportados do Emulator (nunca versionar dumps)
 .firebase/
+emulator-data/
+*-debug.log
 
 # Firebase config
 

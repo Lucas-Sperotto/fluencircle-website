@@ -1,0 +1,229 @@
+/**
+ * @file Fonte comentada das regras PROPOSTAS do Realtime Database.
+ *
+ * O JSON que o Firebase entende (`docs/firebase/database.rules.proposta.json`)
+ * é GERADO a partir deste arquivo por `npm run rules:build`. Edite aqui, gere
+ * o JSON e rode os testes. A CI recusa um JSON fora de sincronia.
+ *
+ * Por que um gerador? O RTDB não tem funções nas regras: a mesma condição
+ * ("é mediador ou admin") se repete dezenas de vezes. Escrever cada repetição
+ * à mão é a principal fonte de erro. Aqui cada condição tem nome e explicação.
+ *
+ * Como o RTDB avalia (resumo — detalhes em docs/firebase/LEIA-ME.md):
+ * - `.read`/`.write` CASCATEIAM: se um nó concede, todos os filhos herdam e
+ *   nenhum filho consegue revogar. Por isso a raiz nega tudo e as permissões
+ *   ficam o mais fundo possível.
+ * - `.validate` NÃO cascateia: vale para o nó onde está e só para valores não
+ *   nulos (remoções não são validadas). Ela confere ESQUEMA, não autoria.
+ * - `root`/`data` = estado antes da escrita; `newData` = estado depois.
+ *
+ * ESTADO: proposta para auditoria e testes no Emulator. NÃO É A REGRA DE
+ * PRODUÇÃO (que não está versionada) e NÃO DEVE SER PUBLICADA sem decisão
+ * humana, comparação com as regras ativas e plano de rollback.
+ */
+
+// ---------------------------------------------------------------------------
+// Condições reutilizáveis (sempre entre parênteses para não errar precedência)
+// ---------------------------------------------------------------------------
+
+const signedIn = 'auth != null';
+const myRole = "root.child('users').child(auth.uid).child('role').val()";
+
+/** Conta autenticada COM perfil em `users` (contas sem perfil ou revogadas não passam). */
+export const hasProfile = `(${signedIn} && root.child('users').child(auth.uid).exists())`;
+
+/** Administrador. */
+export const isAdmin = `(${signedIn} && ${myRole} === 'admin')`;
+
+/** Equipe: mediador ou administrador. */
+export const isStaff = `(${signedIn} && (${myRole} === 'mediator' || ${myRole} === 'admin'))`;
+
+/** O próprio dono do nó identificado pela variável `$x`. */
+const isSelf = (variable) => `(${signedIn} && auth.uid === ${variable})`;
+
+/**
+ * Participou da sessão: aceita o índice `user_sessions` ou a lista
+ * `attendees` (dados antigos podem ter só um dos dois).
+ */
+const attended = (uidExpr, sessionExpr) => `(root.child('user_sessions').child(${uidExpr}).child(${sessionExpr}).exists()`
+  + ` || root.child('meeting_sessions').child(${sessionExpr}).child('attendees').child(${uidExpr}).exists())`;
+
+// ---------------------------------------------------------------------------
+// Validadores de esquema
+// ---------------------------------------------------------------------------
+
+/** Texto com tamanho entre `min` e `max`. */
+const text = (max, min = 0) => `newData.isString() && newData.val().length >= ${min} && newData.val().length <= ${max}`;
+
+/** Data ISO 8601 em UTC, como gera `new Date().toISOString()`. */
+const isoTimestamp = "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]{1,3})?Z$/)";
+
+/** E-mail simples (sem espaços, um @). A verificação real é do Firebase Auth. */
+const email = "newData.isString() && newData.val().length <= 254 && newData.val().matches(/^[^@ ]+@[^@ ]+$/)";
+
+/** Recusa qualquer campo não listado no mesmo nível. */
+const noOtherFields = { $other: { '.validate': false } };
+
+const validate = (expression) => ({ '.validate': expression });
+
+// ---------------------------------------------------------------------------
+// Árvore de regras
+// ---------------------------------------------------------------------------
+
+/** Monta o objeto de regras (o mesmo conteúdo do JSON gerado). */
+export function buildRules() {
+  return {
+    rules: {
+      // Negação padrão: nada é legível ou gravável sem uma regra explícita abaixo.
+      '.read': false,
+      '.write': false,
+
+      // Perfis. A equipe lê a lista (busca de alunos na presença e tela de acessos);
+      // cada pessoa lê o próprio perfil (login). Só o admin grava: impede que um
+      // aluno troque o próprio papel (escalada de privilégio).
+      users: {
+        '.read': isStaff,
+        $uid: {
+          '.read': isSelf('$uid'),
+          '.write': isAdmin,
+          '.validate': "newData.hasChildren(['email', 'role'])",
+          firstName: validate(text(80)),
+          lastName: validate(text(80)),
+          email: validate(email),
+          role: validate("newData.val() === 'student' || newData.val() === 'mediator' || newData.val() === 'admin'"),
+          createdAt: validate(isoTimestamp),
+          updatedAt: validate(isoTimestamp),
+          ...noOtherFields,
+        },
+      },
+
+      // Lista de bloqueio de contas revogadas. A própria conta lê a sua entrada
+      // para o login recusar o acesso (auth.service.js → isUserBlocked).
+      deleted_users: {
+        '.read': isAdmin,
+        $uid: {
+          '.read': isSelf('$uid'),
+          '.write': isAdmin,
+          '.validate': "newData.hasChildren(['deletedAt'])",
+          deletedAt: validate(isoTimestamp),
+          deletedBy: validate(text(254)),
+          ...noOtherFields,
+        },
+      },
+
+      // Temas de conversa (o nó chama `meetings` por compatibilidade com os dados).
+      meetings: {
+        '.read': isStaff,
+        $themeId: {
+          '.write': isStaff,
+          '.validate': "newData.hasChildren(['topic', 'questions'])",
+          topic: validate(text(200, 1)),
+          questions: {
+            $index: validate(`$index.matches(/^[0-9]+$/) && ${text(500, 1)}`),
+          },
+          createdAt: validate(isoTimestamp),
+          updatedAt: validate(isoTimestamp),
+          ...noOtherFields,
+        },
+      },
+
+      // Sessões realizadas. COMPATIBILIDADE: qualquer conta com perfil ainda lê
+      // a coleção inteira porque `flashcards.page.js` faz isso hoje. A leitura
+      // restrita por presença (Issue #10) vem junto com a mudança da tela.
+      meeting_sessions: {
+        '.read': hasProfile,
+        $sessionId: {
+          '.write': isStaff,
+          '.validate': "newData.hasChildren(['topic', 'startedAt'])",
+          templateId: validate(text(128)),
+          topic: validate(text(200, 1)),
+          startedAt: validate(isoTimestamp),
+          // Quem cria a sessão registra o PRÓPRIO e-mail; depois ele não muda.
+          mediatorEmail: validate(`${text(254)} && (data.exists() ? newData.val() === data.val() : newData.val() === auth.token.email)`),
+          attendees: {
+            $uid: {
+              // Presença só existe junto com o índice reverso, na MESMA escrita
+              // (update multicaminho de session-updates.js). Remoções não passam por .validate.
+              '.validate': "newData.hasChildren(['addedAt'])"
+                + " && root.child('users').child($uid).exists()"
+                + " && newData.parent().parent().parent().parent().child('user_sessions').child($uid).child($sessionId).exists()",
+              name: validate(text(160)),
+              email: validate(email),
+              addedAt: validate(isoTimestamp),
+              ...noOtherFields,
+            },
+          },
+          ...noOtherFields,
+        },
+      },
+
+      // Sessão ativa lida pelo tradutor público (sem login): leitura aberta,
+      // por isso guarda o MÍNIMO (id, título e início; nada de pessoas).
+      current_session: {
+        '.read': true,
+        '.write': isStaff,
+        '.validate': "newData.hasChildren(['sessionId', 'topic'])",
+        sessionId: validate("newData.isString() && newData.parent().parent().child('meeting_sessions').child(newData.val()).exists()"),
+        topic: validate(text(200, 1)),
+        startedAt: validate(isoTimestamp),
+        ...noOtherFields,
+      },
+
+      // Flashcards por sessão. Visitante NÃO grava direto (Issue #5): a gravação
+      // pública precisa de backend controlado. COMPATIBILIDADE de leitura: igual
+      // a meeting_sessions (restrição por presença vem com a Issue #10).
+      flashcards: {
+        '.read': hasProfile,
+        $sessionId: {
+          '.write': isStaff,
+          $cardId: {
+            '.validate': "newData.hasChildren(['front', 'back'])"
+              + " && newData.parent().parent().parent().child('meeting_sessions').child($sessionId).exists()",
+            front: validate(text(500, 1)),
+            back: validate(text(500, 1)),
+            topic: validate(text(200)),
+            sessionId: validate('newData.val() === $sessionId'),
+            createdAt: validate(isoTimestamp),
+            ...noOtherFields,
+          },
+        },
+      },
+
+      // Revisão espaçada. Só o próprio aluno, com perfil, em sessão de que
+      // participou (a equipe estuda qualquer deck). A etapa só AVANÇA de 1 em 1
+      // e cada etapa grava o seu carimbo. Limite conhecido: as datas são texto
+      // ISO, então a regra não consegue impedir um carimbo retroativo — o
+      // aluno só "engana" o próprio estudo (risco aceito, ver LEIA-ME).
+      student_reviews: {
+        $uid: {
+          '.read': isSelf('$uid'),
+          $sessionId: {
+            '.write': `${isSelf('$uid')} && ${hasProfile} && (${attended('$uid', '$sessionId')} || ${isStaff})`,
+            '.validate': "newData.hasChildren(['stage', 'lastReviewedAt'])"
+              + " && newData.child('stage').val() === (data.exists() ? data.child('stage').val() + 1 : 1)"
+              + " && newData.hasChild('stage' + newData.child('stage').val() + 'CompletedAt')",
+            stage: validate('newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 3'),
+            lastReviewedAt: validate(isoTimestamp),
+            stage1CompletedAt: validate(isoTimestamp),
+            stage2CompletedAt: validate(isoTimestamp),
+            stage3CompletedAt: validate(isoTimestamp),
+            ...noOtherFields,
+          },
+        },
+      },
+
+      // Índice reverso de presença (aluno → sessões). Cada aluno lê só o seu;
+      // só a equipe grava, e sempre junto com `attendees` (mesma escrita).
+      user_sessions: {
+        $uid: {
+          '.read': isSelf('$uid'),
+          $sessionId: {
+            '.write': isStaff,
+            '.validate': "newData.val() === true"
+              + " && newData.parent().parent().parent().child('meeting_sessions').child($sessionId).child('attendees').child($uid).exists()",
+          },
+        },
+      },
+    },
+  };
+}

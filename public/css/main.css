@@ -27,4 +27,5 @@
 @import url("pages/auth.css");
 @import url("responsive/mobile.css");
 @import url("components/late-shared.css");
+@import url("components/environment-badge.css");
 @import url("overrides/inline-replacements.css");
