@@ -36,6 +36,15 @@ export const SESSIONS = Object.freeze({
   brunoOnly: 'sess-bruno',
 });
 
+/** Planos da carga sintética (PR #2 / ADR-005). Ana tem o Essencial; Bruno, nenhum. */
+export const PLANS = Object.freeze({
+  essencial: 'plano-essencial',
+  intensivo: 'plano-intensivo',
+});
+
+/** Semana fixa usada pelos testes de regras da agenda. */
+export const AGENDA_WEEK = '2026-W47';
+
 /**
  * Monta a árvore do banco sintético.
  * @param {{ uids?: Partial<Record<keyof typeof ACTORS, string>> }} [options]
@@ -58,9 +67,33 @@ export function buildSyntheticDatabase({ uids = {} } = {}) {
     const { email, firstName, lastName, role } = ACTORS[key];
     users[uid(key)] = { firstName, lastName, email, role, createdAt: '2026-09-01T12:00:00.000Z' };
   }
+  users[uid('studentA')].planId = PLANS.essencial;
 
   return {
     users,
+    plans: {
+      [PLANS.essencial]: {
+        name: 'Essencial', price: 120, description: 'Dois encontros por semana.',
+        sessions: [{ dayOfWeek: 1, startTime: '18:00', endTime: '18:50' }, { dayOfWeek: 3, startTime: '18:00', endTime: '18:50' }],
+        createdAt: '2026-09-02T12:00:00.000Z', updatedAt: '2026-09-02T12:00:00.000Z',
+      },
+      [PLANS.intensivo]: {
+        name: 'Intensivo', price: 89.9,
+        sessions: [{ dayOfWeek: 2, startTime: '19:00', endTime: '19:50' }],
+        createdAt: '2026-09-02T12:00:00.000Z', updatedAt: '2026-09-02T12:00:00.000Z',
+      },
+    },
+    weekly_sessions: {
+      [AGENDA_WEEK]: {
+        [`${PLANS.essencial}_3_1`]: {
+          topicId: 'tema-viagem', topicTitle: 'Travel', questions: ['Where did you go last?', 'Beach or mountains?'],
+          meetLink: 'https://meet.example.test/essencial-quarta', updatedAt: '2026-11-15T12:00:00.000Z',
+        },
+        [`${PLANS.intensivo}_2_0`]: {
+          topicId: 'tema-tecnologia', topicTitle: 'Technology & Daily Life', updatedAt: '2026-11-15T12:00:00.000Z',
+        },
+      },
+    },
     deleted_users: {
       [uid('revoked')]: { deletedAt: '2026-10-01T12:00:00.000Z', deletedBy: ACTORS.admin.email },
     },
