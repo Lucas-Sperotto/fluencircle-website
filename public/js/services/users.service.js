@@ -2,7 +2,8 @@
  * @file Perfis de usuário (`users`), lista de bloqueio (`deleted_users`) e criação de contas.
  */
 import { database, ref, get, set, update } from '../core/firebase.js';
-import { getSecondaryAuth, createUserWithEmailAndPassword, signOut } from '../core/firebase-auth.js';
+import { getSecondaryAuth, createUserWithEmailAndPassword, signOut, deleteUser } from '../core/firebase-auth.js';
+import { createAccountWithRollback } from './account-creation.js';
 import { ROLES } from '../core/roles.js';
 import { nowIso } from '../domain/format.js';
 import { DB_PATHS, dbPath } from './db-paths.js';
@@ -43,27 +44,33 @@ export async function listStudents() {
 }
 
 /**
- * Cria a conta no Firebase Auth e o perfil no banco.
+ * Cria a conta no Firebase Auth e o perfil no banco, desfazendo a conta se o
+ * perfil não puder ser gravado (services/account-creation.js).
  *
- * Usa a instância secundária de Auth para não deslogar o administrador.
+ * Usa a instância secundária de Auth para não deslogar o administrador; o
+ * perfil é gravado pela sessão do ADMIN (instância principal), que as regras
+ * autorizam. Enquanto a secundária está logada como a conta nova, ela pode
+ * excluir a si mesma — é isso que permite desfazer.
  * Limitação conhecida: por rodar no navegador, exige o cadastro público por
- * e-mail habilitado no projeto (ver docs/AUDITORIA.md, achado "Cadastro aberto").
+ * e-mail habilitado no projeto. Solução definitiva: backend com Admin SDK.
  *
  * @param {{ firstName: string, lastName: string, email: string, password: string, role: string }} data
  * @returns {Promise<string>} uid da nova conta
  */
 export async function createUserAccount({ firstName, lastName, email, password, role }) {
   const secondaryAuth = getSecondaryAuth();
-  const { user } = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-  await signOut(secondaryAuth);
-  await set(ref(database, dbPath(DB_PATHS.users, user.uid)), {
-    firstName,
-    lastName,
-    email,
-    role,
-    createdAt: nowIso(),
+  return createAccountWithRollback({
+    createAuthUser: async () => (await createUserWithEmailAndPassword(secondaryAuth, email, password)).user,
+    writeProfile: (uid) => set(ref(database, dbPath(DB_PATHS.users, uid)), {
+      firstName,
+      lastName,
+      email,
+      role,
+      createdAt: nowIso(),
+    }),
+    deleteAuthUser: (user) => deleteUser(user),
+    signOutSecondary: () => signOut(secondaryAuth),
   });
-  return user.uid;
 }
 
 /**

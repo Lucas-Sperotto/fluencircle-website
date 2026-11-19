@@ -11,6 +11,7 @@ import {
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
+  deleteUser,
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { app, initializeApp } from './firebase.js';
 import { currentEnvironment } from '../config/environment.js';
@@ -46,4 +47,4 @@ export function getSecondaryAuth() {
   return secondaryAuth;
 }
 
-export { signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword };
+export { signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, deleteUser };
