@@ -1,0 +1,30 @@
+name: CI - validação offline do frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    name: Unitários, sintaxe e referências locais
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testes unitários (sem rede e Firebase)
+        run: npm test
+      - name: Sintaxe JavaScript
+        run: find public/js tests scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+      - name: Referências HTML e propostas JSON
+        run: node scripts/verify-static.mjs
+
+# Intencionalmente não há deploy, acesso ao Firebase, backend ou segredos.
