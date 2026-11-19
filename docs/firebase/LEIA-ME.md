@@ -2,7 +2,7 @@
 
 Dois arquivos de **proposta** — nada aqui é aplicado automaticamente:
 
-- `database.rules.proposta.json` — regras do Realtime Database compatíveis com o código atual.
+- `database.rules.proposta.json` — **rascunho NÃO APTO A DEPLOY**: não concede mais escrita anônima direta em flashcards. O tradutor público ainda usa o SDK para salvar e receberá erro se estas regras forem aplicadas sem um backend seguro. Outras permissões amplas ainda exigem revisão.
 - `firebase.json.exemplo` — hosting com cabeçalhos de segurança e cache.
 
 ## Antes de tudo: versionar o que está em produção
@@ -13,9 +13,9 @@ As regras atuais estão só no console do Firebase. Exporte-as e coloque no Git 
 2. Faça o mesmo com o `firebase.json` local usado no deploy.
 3. Commit: `git add database.rules.json firebase.json && git commit -m "Versiona regras e hosting atuais"`.
 
-## O que a proposta de regras garante
+## Modelo de acessos pretendido (NÃO TESTADO)
 
-Ela foi escrita a partir do que o código realmente lê e grava (ver `docs/ARQUITETURA.md`), então o site continua funcionando:
+Este arquivo é **rascunho para auditoria**, não representa regras ativas de produção. Continua contendo leituras amplas e validações incompletas. **Não há garantia de compatibilidade com a UI atual**, especialmente no salvamento público de flashcards:
 
 | Nó | Leitura | Escrita |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ Ela foi escrita a partir do que o código realmente lê e grava (ver `docs/ARQUI
 | `meetings` (temas) | mediador e admin | mediador e admin |
 | `meeting_sessions` | quem tem perfil em `users` | mediador e admin |
 | `current_session` | público (o tradutor precisa) | mediador e admin |
-| `flashcards` | quem tem perfil em `users` | mediador e admin; **visitante só cria** card novo na sessão ativa, com campos e tamanhos validados |
+| `flashcards` | quem tem perfil em `users` | mediador e admin; **visitante não cria** card diretamente no RTDB nesta proposta de contenção |
 | `student_reviews/{uid}` | o próprio aluno | o próprio aluno |
 | `user_sessions/{uid}` | o próprio aluno, mediador e admin | mediador e admin |
 
@@ -39,12 +39,13 @@ O papel é lido de `users/{uid}/role`. Contas criadas fora do painel (sem perfil
 3. Aponte `public/js/config/firebase.config.js` para o emulador num ramo de testes, ou use o Simulador de Regras do console com um usuário de cada papel.
 4. Percorra o checklist de `docs/MIGRACAO.md` com cada papel e com o tradutor sem login.
 
-## Publicar
+## Publicação BLOQUEADA
 
-```bash
-cp docs/firebase/database.rules.proposta.json database.rules.json
-firebase deploy --only database
-```
+**NÃO copie este rascunho para `database.rules.json` nem execute `firebase deploy`.** Primeiro exporte as regras ativas, modele a persistência pública via backend autorizado, restrinja leitura por presença, valide esquemas e execute a matriz de negações no Firebase Emulator. É indispensável um plano de migração do tradutor, pois a proposta bloqueia a escrita anônima direta.
+
+Consulte `docs/operacao/SEGURANCA_E_DEPLOY.md` e Issues #5, #7, #8, #9, #10, #15. **Merge deste arquivo não libera publicação.**
+
+A CSP de exemplo inclui tanto `*.firebaseio.com` quanto `*.firebasedatabase.app` (HTTPS/WSS), mas precisa de testes na origem real e preview de Hosting antes de qualquer ativação.
 
 ## Cabeçalhos do hosting (`firebase.json.exemplo`)
 

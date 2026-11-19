@@ -161,6 +161,8 @@ async function handleDeckFinished() {
       console.error('Erro ao registrar avanço na curva de esquecimento:', error);
       showToast('Não foi possível salvar seu progresso. Tente de novo.', 'error');
     }
+  } else if (srs.invalidState) {
+    showToast('Progresso com dados inválidos. Não foi alterado; contate o suporte.', 'error');
   } else if (srs.stage >= FINAL_STAGE) {
     showToast('Revisão concluída! Vocabulário 100% consolidado.', 'success');
   } else {

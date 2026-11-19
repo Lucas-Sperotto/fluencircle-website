@@ -54,7 +54,6 @@
       "$sessionId": {
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'mediator' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         "$cardId": {
-          ".write": "!data.exists() && newData.exists() && $sessionId === root.child('current_session').child('sessionId').val()",
           ".validate": "newData.hasChildren(['front', 'back'])",
           "front": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
           "back": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
