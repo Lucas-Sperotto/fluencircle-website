@@ -37,7 +37,7 @@ def main():
     sha = git("rev-parse", "--verify", args.sha + "^{commit}").decode().strip()
     if sha != args.sha:
         raise SystemExit("Expected full immutable SHA")
-    names = git("ls-tree", "-r", "--name-only", sha).decode().splitlines()
+    names = git("ls-tree", "-rz", "--name-only", sha).decode("utf-8").split("\x00")
     files = {}
     for name in names:
         if not permitted(name):
@@ -46,6 +46,8 @@ def main():
         if any(marker in data for marker in MARKERS):
             raise SystemExit("Refusing archive containing private key: " + name)
         files[name] = data
+    if "docs/auditorias/Auditoria técnica do fluencircle-website.pdf" not in files:
+        raise SystemExit("Original Claude audit PDF missing from archive; check Unicode Git paths")
     if not files or "README.md" not in files or "package.json" not in files:
         raise SystemExit("Unexpectedly incomplete checkout")
     missing = [p for p in ("firebase.json", "database.rules.json") if p not in files]
