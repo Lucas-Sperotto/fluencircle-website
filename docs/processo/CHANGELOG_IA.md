@@ -12,7 +12,10 @@ Este documento atribui **funções de assistência**, não forja autoria de comm
 | #17 | ChatGPT | Auditoria independente de segurança/dados e runbook NO-GO | Merge na main |
 | #18 | ChatGPT | Requisitos, manual, nove diagramas Mermaid, ADR, prompt Gemini, README e ledger | **Merge na main; CI 44430941350 aprovada** |
 | #19 | ChatGPT | Checagem de camadas e sinks HTML em CI e documentação | **Merge na main; CI 44431326113 aprovada** |
-| Futuro | Gemini | Revisão independente com evidências no PR próprio | **Não executado** |
+| #22 | ChatGPT | Exportador de snapshot pinado e logs para Gemini | Merge na main; workflow de exportação validado |
+| #23 | Gemini (parecer encaminhado) + ChatGPT (normalização/importação) | 9 achados e 4 artefatos de auditoria | **Merge na main; CI 44514494925 aprovada**; sem testes dinâmicos pelo Gemini |
+| #26 | ChatGPT (correções) com achados de Gemini | SRS inválido e datas, CSP regional, contenção de regra RTDB **somente em proposta**, relatório final | **Merge na main; CI 44515234156: 30/30 testes** |
+| Futuro | Responsável + IAs revisoras | Firebase Emulator, backend Render, E2E, credencial histórica e release | **Aberto; NO-GO produção** |
 
 ## Compromissos
 
