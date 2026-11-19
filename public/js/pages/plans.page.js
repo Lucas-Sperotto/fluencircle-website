@@ -9,7 +9,8 @@ import { listPlans, savePlan, deletePlan, getWeekSchedule, saveWeekSlot, clearWe
 import { listThemes } from '../services/themes.service.js';
 import {
   WEEK_DAYS, buildWeekAgenda, isoWeekKey, addWeeks, weekRangeLabel, validatePlanInput,
-  formatPlanPrice, planScheduleSummary, planSessions, isSafeMeetLink,
+  formatPlanPrice, planScheduleSummary, planSessions, preservePlanSessionIndices,
+  changesExistingPlanSlots, isSafeMeetLink,
 } from '../domain/plans.js';
 import { toQuestionList } from '../domain/questions.js';
 import { ROLES, STAFF_ROLES } from '../core/roles.js';
@@ -47,6 +48,10 @@ let themes = {};
 let schedule = {};
 /** Semanas a partir da atual (0 = esta semana). */
 let weekOffset = 0;
+/** Sequência das leituras para ignorar respostas de semanas antigas. */
+let weekRequest = 0;
+/** Semana capturada ao abrir o editor de encontro. */
+let editingWeekKey = null;
 /** Encontro aberto no modal. */
 let editingSlot = null;
 /** Plano em edição; null = novo. */
@@ -77,12 +82,18 @@ function showTab(name) {
 // ---------------------------------------------------------------------------
 
 async function loadWeek() {
+  const request = ++weekRequest;
+  const weekKey = currentWeekKey();
   weekLabel.textContent = `Semana ${weekRangeLabel(currentDate())}`;
   replaceContent(weekAgenda, emptyState('Carregando agenda...'));
   try {
-    schedule = await getWeekSchedule(currentWeekKey());
+    const nextSchedule = await getWeekSchedule(weekKey);
+    // Respostas antigas não podem sobrescrever a semana já selecionada.
+    if (request !== weekRequest) return;
+    schedule = nextSchedule;
     renderWeek();
   } catch (error) {
+    if (request !== weekRequest) return;
     console.error('Erro ao carregar a agenda:', error);
     replaceContent(weekAgenda, emptyState('Erro ao carregar a agenda da semana.'));
   }
@@ -107,6 +118,7 @@ function renderThemeOptions(selectedId) {
 
 function openSlotModal(item) {
   editingSlot = item;
+  editingWeekKey = currentWeekKey();
   slotInfo.textContent = `${item.weekdayShort} ${item.monthDay} · ${item.startTime} – ${item.endTime} · ${item.planName}`;
   renderThemeOptions(item.topicId);
   slotMeetLink.value = item.meetLink;
@@ -131,7 +143,7 @@ async function saveSlot(event) {
   }
   const restore = setBusy(saveSlotButton, 'Salvando...');
   try {
-    await saveWeekSlot(currentWeekKey(), editingSlot.slotKey, {
+    await saveWeekSlot(editingWeekKey, editingSlot.slotKey, {
       topicId: slotThemeSelect.value,
       topicTitle: theme.topic,
       questions: toQuestionList(theme.questions),
@@ -150,7 +162,7 @@ async function saveSlot(event) {
 
 async function clearSlot() {
   try {
-    await clearWeekSlot(currentWeekKey(), editingSlot.slotKey);
+    await clearWeekSlot(editingWeekKey, editingSlot.slotKey);
     showToast('Tema removido do encontro.', 'success');
     closeSlotModal();
     await loadWeek();
@@ -192,7 +204,7 @@ function planActionButton(iconName, label, onClick) {
   return button;
 }
 
-function addScheduleRow({ dayOfWeek = 1, startTime = '18:00', endTime = '18:50' } = {}) {
+function addScheduleRow({ index = null, dayOfWeek = 1, startTime = '18:00', endTime = '18:50' } = {}) {
   const position = scheduleRows.children.length + 1;
   const day = h('select', { class: 'plans-select schedule-row__day', 'aria-label': `Dia do horário ${position}` },
     WEEK_DAYS.map((d) => h('option', { value: String(d.id) }, d.full)));
@@ -201,6 +213,8 @@ function addScheduleRow({ dayOfWeek = 1, startTime = '18:00', endTime = '18:50' 
   const end = h('input', { type: 'time', class: 'schedule-row__end', value: endTime, required: '', 'aria-label': `Fim do horário ${position}` });
   const removeButton = h('button', { type: 'button', class: 'action-table-btn', 'aria-label': `Remover horário ${position}` }, icon('fa-trash'));
   const row = h('div', { class: 'schedule-row' }, day, start, end, removeButton);
+  // Índice salvo: a posição visual da linha não identifica um horário.
+  if (Number.isInteger(index) && index >= 0) row.dataset.slotIndex = String(index);
   removeButton.addEventListener('click', () => row.remove());
   scheduleRows.append(row);
 }
@@ -237,13 +251,22 @@ async function submitPlan(event) {
     showToast(result.errors[0], 'error');
     return;
   }
+  let sessionsForSave = result.value.sessions;
   if (editingPlanId) {
-    // Os encontros já agendados são identificados pela posição do horário.
-    const before = planSessions(plans[editingPlanId]).length;
-    if (result.value.sessions.length < before) {
+    try {
+      // Nunca reutilizar o índice de uma linha removida na mesma edição.
+      sessionsForSave = preservePlanSessionIndices(
+        plans[editingPlanId], result.value.sessions,
+        [...scheduleRows.children].map((row) => row.dataset.slotIndex ?? ''),
+      );
+    } catch (error) {
+      showToast(error.message, 'error');
+      return;
+    }
+    if (changesExistingPlanSlots(plans[editingPlanId], sessionsForSave)) {
       const proceed = await confirmDialog({
-        title: 'Remover horários',
-        message: 'Temas já definidos para horários removidos deixarão de aparecer na agenda. Continuar?',
+        title: 'Alterar horários existentes',
+        message: 'Remover ou mudar dias/horários pode desvincular temas já programados em outras semanas. Os índices dos demais horários serão preservados. Continuar?',
         confirmText: 'Continuar',
       });
       if (!proceed) return;
@@ -251,7 +274,7 @@ async function submitPlan(event) {
   }
   const restore = setBusy(savePlanButton, 'Salvando...');
   try {
-    await savePlan(editingPlanId, result.value);
+    await savePlan(editingPlanId, { ...result.value, sessions: sessionsForSave });
     showToast(editingPlanId ? 'Plano atualizado!' : 'Plano criado!', 'success');
     closePlanModal();
     await loadPlans();

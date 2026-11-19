@@ -133,6 +133,51 @@ export function isSafeMeetLink(url) {
 }
 
 /**
+ * Preserva os índices dos horários existentes ao editar um plano.
+ *
+ * A agenda semanal usa `<planId>_<dayOfWeek>_<index>` como chave persistente.
+ * Reindexar um array após apagar a primeira linha poderia reutilizar a chave
+ * de outro horário e exibir o tema de uma aula na aula errada.
+ *
+ * Índices antigos não são reutilizados nesta edição; novos horários recebem
+ * índices maiores que o maior índice histórico ainda presente no plano.
+ * O limite de 99 é compatível com o validador de regras RTDB.
+ */
+export function preservePlanSessionIndices(previousPlan, sessions, sourceIndices = []) {
+  if (!Array.isArray(sessions) || !Array.isArray(sourceIndices) || sessions.length !== sourceIndices.length) {
+    throw new TypeError('Horários e índices de origem devem possuir o mesmo tamanho.');
+  }
+  const existing = new Set(planSessions(previousPlan).map((slot) => slot.index));
+  const used = new Set();
+  let nextIndex = Math.max(-1, ...existing) + 1;
+  const result = {};
+
+  sessions.forEach((session, position) => {
+    const raw = sourceIndices[position];
+    const candidate = typeof raw === 'string' && /^(0|[1-9][0-9]?)$/.test(raw) ? Number(raw) : null;
+    let index;
+    if (candidate !== null && existing.has(candidate) && !used.has(candidate)) {
+      index = candidate;
+    } else {
+      index = nextIndex++;
+    }
+    if (index > 99) throw new RangeError('Limite de índices da agenda atingido; é necessária migração.');
+    used.add(index);
+    result[index] = { ...session };
+  });
+  return result;
+}
+
+/** Mudanças que podem desvincular temas de encontros já programados. */
+export function changesExistingPlanSlots(previousPlan, updatedSessions) {
+  return planSessions(previousPlan).some((oldSlot) => {
+    const updated = updatedSessions?.[oldSlot.index];
+    return !updated || updated.dayOfWeek !== oldSlot.dayOfWeek
+      || updated.startTime !== oldSlot.startTime || updated.endTime !== oldSlot.endTime;
+  });
+}
+
+/**
  * Agenda de uma semana: um item por horário de cada plano, com o tema e o
  * link gravados para aquela semana (se houver), em ordem cronológica.
  *

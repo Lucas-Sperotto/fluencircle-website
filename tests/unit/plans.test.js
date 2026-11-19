@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {
   isoWeekKey, weekDays, addWeeks, weekRangeLabel, slotKey, planSessions, buildWeekAgenda,
   validatePlanInput, formatPlanPrice, planScheduleSummary, isSafeMeetLink, isValidPlanId,
+  preservePlanSessionIndices, changesExistingPlanSlots,
 } from '../../public/js/domain/plans.js';
 
 describe('semana ISO', () => {
@@ -96,5 +97,44 @@ describe('formulário de plano', () => {
     assert.equal(formatPlanPrice(89.9), 'R$ 89,90');
     assert.equal(planScheduleSummary({ sessions: [{ dayOfWeek: 0, startTime: '10:00', endTime: '10:50' }, { dayOfWeek: 3, startTime: '18:00', endTime: '18:50' }] }),
       'Qua 18:00–18:50 · Dom 10:00–10:50');
+  });
+});
+
+describe('integridade dos índices de agenda em edição', () => {
+  const previous = { sessions: [
+    { dayOfWeek: 1, startTime: '18:00', endTime: '18:50' },
+    { dayOfWeek: 3, startTime: '19:00', endTime: '19:50' },
+    { dayOfWeek: 5, startTime: '20:00', endTime: '20:50' },
+  ] };
+  test('apagar primeira linha não reaproveita o tema do índice 0', () => {
+    const normalized = [
+      { dayOfWeek: 3, startTime: '19:00', endTime: '19:50' },
+      { dayOfWeek: 5, startTime: '20:00', endTime: '20:50' },
+    ];
+    const slots = preservePlanSessionIndices(previous, normalized, ['1', '2']);
+    assert.deepEqual(Object.keys(slots), ['1', '2']);
+    assert.equal(slotKey('planoA', slots[1].dayOfWeek, 1), 'planoA_3_1');
+    assert.equal(changesExistingPlanSlots(previous, slots), true);
+  });
+  test('nova linha ganha índice acima do maior existente', () => {
+    const slots = preservePlanSessionIndices(previous, [
+      { dayOfWeek: 3, startTime: '19:00', endTime: '19:50' },
+      { dayOfWeek: 6, startTime: '08:00', endTime: '08:30' },
+    ], ['1', '']);
+    assert.deepEqual(Object.keys(slots), ['1', '3']);
+  });
+  test('alterar só preço não requer aviso; mudar horário requer', () => {
+    const preserved = preservePlanSessionIndices(previous,
+      previous.sessions.map((s) => ({ ...s })), ['0', '1', '2']);
+    assert.equal(changesExistingPlanSlots(previous, preserved), false);
+    const changed = { ...preserved, 1: { ...preserved[1], startTime: '20:00' } };
+    assert.equal(changesExistingPlanSlots(previous, changed), true);
+  });
+  test('índice 99 exige migração antes de adicionar outro horário', () => {
+    const legacy = { sessions: { 99: { dayOfWeek: 4, startTime: '10:00', endTime: '11:00' } } };
+    assert.throws(() => preservePlanSessionIndices(legacy, [
+      { dayOfWeek: 4, startTime: '10:00', endTime: '11:00' },
+      { dayOfWeek: 4, startTime: '12:00', endTime: '13:00' },
+    ], ['99', '']), RangeError);
   });
 });
