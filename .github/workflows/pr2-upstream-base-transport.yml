@@ -1,0 +1,33 @@
+name: PR2 audit - checkout exact upstream merge base
+on:
+  push:
+    branches:
+      - audit/pr2-upstream-transport
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch upstream main merge commit (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags https://github.com/fluencircle/fluencircle-website.git main
+          git cat-file -e da51788186261d3c013770ab9dae6a9ebbd8ce9f^{commit}
+          git update-ref refs/remotes/pr2-upstream/main da51788186261d3c013770ab9dae6a9ebbd8ce9f
+          mkdir -p out
+          git bundle create out/pr2-upstream-base.bundle --all
+          git bundle verify out/pr2-upstream-base.bundle
+          sha256sum out/pr2-upstream-base.bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr2-upstream-base-bundle
+          path: out/pr2-upstream-base.bundle
+          retention-days: 3
+          if-no-files-found: error
