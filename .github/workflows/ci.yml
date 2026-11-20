@@ -120,3 +120,5 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: E2E (rede bloqueada; banco simulado aplica as regras propostas)
         run: npm run test:e2e
+      - name: Ícones gerados em sincronia com o uso (css/components/icons.css)
+        run: npm run icons:check
