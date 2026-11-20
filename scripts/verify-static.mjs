@@ -37,6 +37,11 @@ for (const htmlName of entries) {
     if (!existsSync(target)) missing.push({ file: htmlName, target: pathname });
   }
 
+  // main.css é só o manifesto (cadeia de @import); as páginas carregam a folha única gerada.
+  if (/\bhref=["'](?:\.\/)?css\/main\.css["']/i.test(html)) {
+    problems.push(`${htmlName}: carrega css/main.css (cadeia de @import); use css/app.css (npm run css:build)`);
+  }
+
   // Scripts e folhas de estilo de outra origem: só com SRI (ou exceção justificada acima).
   const tags = [
     ...[...html.matchAll(/<script\b[^>]*>/gi)].map((m) => ({ tag: m[0], url: /\bsrc=["']([^"']+)["']/i.exec(m[0])?.[1] })),

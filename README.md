@@ -48,8 +48,11 @@ npm run test:rules                # regras RTDB no Firebase Emulator (regras no 
 npm run test:rules:sim            # mesma matriz no simulador local (pré-verificação offline; não é o Emulator)
 npm run test:e2e                  # E2E e acessibilidade básica (Playwright; Firebase simulado com as regras propostas)
 npm run rules:check               # JSON das regras em sincronia com a fonte comentada
-node scripts/verify-static.mjs    # arquivos locais e JSON de configuração
-node scripts/verify-architecture.mjs  # camadas e sinks HTML proibidos
+npm run css:check                 # css/app.css em sincronia com css/main.css (gere com npm run css:build)
+npm run icons:check               # ícones gerados em sincronia com o uso (precisa de npm ci)
+node scripts/verify-static.mjs    # arquivos locais, ícones, SRI de terceiros e JSON de configuração
+node scripts/verify-architecture.mjs  # matriz de camadas, ciclos, DOM fora de lugar e sinks HTML
+npm run bench:pages               # desempenho no navegador contra o Emulator (BENCH_ARGS="--scale=medium --network=mobile")
 ```
 
 ## Estrutura
@@ -80,7 +83,7 @@ Detalhes: [`docs/entrega/ARQUITETURA_E_FLUXOS.md`](docs/entrega/ARQUITETURA_E_FL
 2. **Só `services/` fala com o banco.** Os nomes dos nós ficam em `services/db-paths.js`.
 3. **`domain/` não importa nada.** São funções puras, cobertas por `tests/unit/`.
 4. **Toda página interna começa com `initProtectedPage()`**, que exige login, aplica o papel no menu e barra quem não tem permissão.
-5. **Sem `style=` no HTML e sem estilos montados em strings no JS.** Estilos novos vão no arquivo CSS da seção; a ordem dos `@import` em `main.css` importa.
+5. **Sem `style=` no HTML e sem estilos montados em strings no JS.** Estilos novos vão no arquivo CSS da seção; a ordem dos `@import` em `main.css` importa. As páginas carregam **`css/app.css`, gerado**: depois de editar qualquer CSS rode `npm run css:build` (ícone novo: `npm run icons:build`). A CI recusa os gerados desatualizados.
 6. **Regras do banco só pela fonte** `firebase/rules/database.rules.source.mjs` (`npm run rules:build`), sempre com teste em `tests/rules/`.
 7. **Testes nunca usam o Firebase de produção**: Emulator (`npm run test:rules`), simulador ou Firebase simulado nos E2E, com dados de `tests/fixtures/`.
 8. Comentários e textos em português; nomes no código em inglês.
