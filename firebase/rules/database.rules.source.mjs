@@ -302,7 +302,9 @@ export function buildRules() {
         $roomId: {
           '.write': `(${activeAccount} && ${roomHost} && !newData.exists())`,
           $uid: {
-            '.write': `(${activeAccount} && ${isSelf('$uid')} && ${roomOnline} && newData.val() === true)`,
+            // Entrar exige perfil ativo e sala online; sair remove somente o próprio vínculo.
+              // A remoção continua possível com sala offline ou perfil revogado.
+              '.write': `((${activeAccount} && ${isSelf('$uid')} && ${roomOnline} && newData.val() === true) || (auth != null && ${isSelf('$uid')} && !newData.exists()))`,
             '.validate': 'newData.val() === true',
           },
         },
