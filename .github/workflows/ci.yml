@@ -73,13 +73,10 @@ jobs:
           npx firebase --version
       - name: Matriz de regras no Firebase Emulator
         run: npm run test:rules
-      - name: Carga sintética REAL no Emulator (Auth + RTDB, sem produção)
-        run: >
-          npx firebase emulators:exec
-          --config firebase.emulator.json
-          --project demo-fluencircle-audit
-          --only auth,database
-          "npm run emulators:seed && npm run emulators:verify"
+      - name: Chromium do Playwright
+        run: npx playwright install chromium
+      - name: Carga sintética e navegador no Emulator (Hosting, Auth e RTDB)
+        run: npm run test:e2e:emulator
 
   seed-cli-windows:
     name: Smoke do inicializador de dados no Windows (sem rede)
@@ -119,7 +116,7 @@ jobs:
       - name: Dependências de teste
         run: npm ci --no-audit --no-fund
       - name: Chromium do Playwright
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: E2E (rede bloqueada; banco simulado aplica as regras propostas)
         run: npm run test:e2e
       - name: Ícones gerados em sincronia com o uso (css/components/icons.css)
