@@ -49,7 +49,8 @@ import { assertSafeTarget, PROJECT_ID, DATABASE_NAMESPACE } from '../emulator/se
 import { summarizeRtdbFrames, buildSyntheticVolume, median, SCALES } from './page-performance-lib.mjs';
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
-const PUBLIC_DIR = join(ROOT, 'public');
+// BENCH_PUBLIC_DIR permite medir outra versão (ex.: `git archive <ref> public`) nas MESMAS condições.
+const PUBLIC_DIR = resolve(process.env.BENCH_PUBLIC_DIR || join(ROOT, 'public'));
 
 // ---------------------------------------------------------------------------
 // Opções
@@ -333,13 +334,17 @@ async function measurePage(browser, origin, pageDef, state, network) {
 // Cenário de vazamento: abrir/fechar o modo de estudo repetidamente
 // ---------------------------------------------------------------------------
 
+// waitForSelector devolve um ElementHandle que, sem dispose, mantém o elemento vivo
+// e falsearia a medição de vazamento. locator.waitFor() não retém nada.
+const waitVisible = (page, selector, { timeout }) => page.locator(selector).first().waitFor({ timeout });
+
 async function studyLoop(browser, origin, state, iterations) {
   const context = await browser.newContext({ ignoreHTTPSErrors: true, storageState: state });
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await cdp.send('Performance.enable');
   await page.goto(`${origin}/flash-cards.html`);
-  await page.waitForSelector('#sessions-grid .srs-meeting-card', { timeout: 60000 });
+  await waitVisible(page, '#sessions-grid .srs-meeting-card', { timeout: 60000 });
   const sample = async (iteration) => {
     await cdp.send('HeapProfiler.enable');
     await cdp.send('HeapProfiler.collectGarbage');
@@ -350,20 +355,40 @@ async function studyLoop(browser, origin, state, iterations) {
   const samples = [await sample(0)];
   for (let i = 1; i <= iterations; i++) {
     await page.click('#sessions-grid .srs-meeting-card');
-    await page.waitForSelector('#flash-cards-container .card', { timeout: 30000 });
-    // Percorre a pilha inteira: vira e avança cada cartão.
+    await waitVisible(page, '#flash-cards-container .card', { timeout: 30000 });
+    // Percorre a pilha inteira: vira e avança cada cartão, esperando a animação
+    // de saída terminar (a posição só muda depois dela).
     const total = await page.locator('#flash-cards-container .card:not(.completion-card)').count();
-    for (let c = 0; c < total; c++) {
-      const top = page.locator('#flash-cards-container .card[data-position="0"]');
-      await top.click();
-      await top.locator('.btn-next').click();
+    for (let c = 1; c <= total; c++) {
+      const card = page.locator(`#card-${c}`);
+      await card.click();
+      await card.locator('.btn-next').click();
+      await page.waitForFunction((id) => document.getElementById(id)?.dataset.position === '-1', `card-${c}`, { timeout: 10000 });
     }
+    await waitVisible(page, '#completion-card:not(.hidden)', { timeout: 10000 });
     await page.click('#back-to-meetings-btn');
-    await page.waitForSelector('#sessions-grid .srs-meeting-card', { timeout: 60000 });
+    await waitVisible(page, '#sessions-grid .srs-meeting-card', { timeout: 60000 });
     if (i === 1 || i % 5 === 0 || i === iterations) samples.push(await sample(i));
   }
+  // Quais elementos continuam vivos sem estar no documento (candidatos a vazamento).
+  const { result: prototype } = await cdp.send('Runtime.evaluate', { expression: 'Element.prototype' });
+  const { objects } = await cdp.send('Runtime.queryObjects', { prototypeObjectId: prototype.objectId });
+  const { result: detached } = await cdp.send('Runtime.callFunctionOn', {
+    objectId: objects.objectId,
+    returnByValue: true,
+    functionDeclaration: `function () {
+      const counts = {};
+      for (const el of this) {
+        // queryObjects também devolve os protótipos (HTMLDivElement.prototype...), cujo getter lança erro.
+        try { if (el.isConnected) continue; } catch { continue; }
+        const key = el.tagName.toLowerCase() + (el.id ? '#' + el.id.replace(/[0-9]+/g, 'N') : '') + (el.classList.length ? '.' + [...el.classList].join('.') : '');
+        counts[key] = (counts[key] || 0) + 1;
+      }
+      return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    }`,
+  });
   await context.close();
-  return samples;
+  return { samples, detachedElements: detached.value };
 }
 
 // ---------------------------------------------------------------------------
@@ -450,7 +475,8 @@ async function main() {
     };
     if (options.scenario === 'study-loop') {
       output.studyLoop = await studyLoop(browser, server.origin, states.studentA, options.runs);
-      console.table(output.studyLoop);
+      console.table(output.studyLoop.samples);
+      console.log('Elementos desconectados ainda vivos (após GC):', JSON.stringify(output.studyLoop.detachedElements));
     } else {
       const selected = PAGES.filter((p) => !options.pages || options.pages.includes(p.id));
       const results = [];
