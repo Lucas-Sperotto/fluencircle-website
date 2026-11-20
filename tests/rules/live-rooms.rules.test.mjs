@@ -47,6 +47,36 @@ describe(`${env.label} círculos autenticados e chat`, () => {
     assert.equal(await env.adminGet(`user_sessions/${studentB.uid}/${id}`), null);
   });
 
+  test('aluno sai da sala: remove somente o próprio vínculo e perde acesso ao chat', async () => {
+    await env.as(mediatorA).set(room, initialRoom);
+    const ana = env.as(studentA);
+    const bruno = env.as(studentB);
+    await env.allowed(ana.set(`${members}/${studentA.uid}`, true));
+    await env.allowed(bruno.set(`${members}/${studentB.uid}`, true));
+    await env.allowed(ana.set(`${chat}/message-a`, message));
+    await env.denied(ana.remove(`${members}/${studentB.uid}`));
+    await env.allowed(ana.remove(`${members}/${studentA.uid}`));
+    assert.equal(await env.adminGet(`${members}/${studentA.uid}`), null);
+    assert.equal(await env.adminGet(`${members}/${studentB.uid}`), true);
+    await env.denied(ana.get(chat));
+    await env.denied(ana.set(`${chat}/message-b`, message));
+    await env.allowed(ana.set(`${members}/${studentA.uid}`, true));
+    assert.deepEqual(await ana.get(chat), { 'message-a': message });
+  });
+
+  test('aluno desconecta e sua inscrição é removida mesmo se o anfitrião ficar offline', async () => {
+    const host = env.as(mediatorA);
+    const ana = env.as(studentA);
+    await host.set(room, initialRoom);
+    await env.allowed(ana.set(`${members}/${studentA.uid}`, true));
+    await ana.onDisconnectRemove(`${members}/${studentA.uid}`);
+    await host.onDisconnectRemove(`${room}/online`);
+    await host.goOffline();
+    await env.waitForAdmin(room, (value) => value && !value.online);
+    await ana.goOffline();
+    await env.waitForAdmin(`${members}/${studentA.uid}`, (value) => value === null);
+  });
+
   test('apenas o anfitrião encerra sala, chat e entradas; desconexão suspende novas mensagens', async () => {
     const host = env.as(mediatorA);
     const ana = env.as(studentA);
