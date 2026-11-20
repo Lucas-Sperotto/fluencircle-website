@@ -135,8 +135,11 @@ usa um Chrome já instalado. Os títulos dos testes de regras dizem qual executo
 | mudar regra da revisão espaçada | `public/js/domain/srs.js` + `tests/unit/srs.test.js` |
 | mudar o protocolo da sessão ativa | `public/js/domain/presentation-lock.js` + regras + `tests/rules/sessao-ativa.rules.test.mjs` |
 | acessar um nó novo do banco | `public/js/services/db-paths.js` e um serviço em `public/js/services/` |
-| criar uma tela | HTML em `public/`, script em `public/js/pages/`, estilos na pasta `public/css/` correspondente |
-| mudar endereços/limites/ambiente | `public/js/config/` |
+| criar uma tela | HTML em `public/` (carregando `css/app.css`), script em `public/js/pages/`, estilos na pasta `public/css/` correspondente |
+| mudar estilos | o arquivo da seção em `public/css/` (nunca `css/app.css`, que é gerado) → `npm run css:build` |
+| usar um ícone novo | `icon('fa-nome')` ou `<i class="fa-solid fa-nome">` → `npm run icons:build` (ADR-006) |
+| mudar endereços/limites/ambiente | `public/js/config/` — produção só nos endereços de `PRODUCTION_HOSTNAMES` (ADR-002) |
+| medir desempenho | `npm run bench:pages` (ver `docs/auditorias/CLAUDE_AUDITORIA_DESEMPENHO.md` §5) |
 
 Camadas e motivos: [`docs/entrega/ARQUITETURA_E_FLUXOS.md`](ARQUITETURA_E_FLUXOS.md) e [`docs/ARQUITETURA.md`](../ARQUITETURA.md).
 Regras do código (resumo): dados nunca em `innerHTML` (use `h()`); só `services/` fala com o banco; `domain/` não
@@ -166,6 +169,7 @@ Para cada contribuição: Issue → branch própria → commits pequenos (`feat(
 | `npm run emulators:verify` informa coleções ausentes | carga não executada ou interface está olhando outro projeto/namespace | confira `demo-fluencircle-audit-default-rtdb` e a porta 9000; rode `npm run emulators:seed` novamente |
 | porta 9000/9099/5050/4000 ocupada | outro processo usando a porta | feche o processo ou mude a porta em `firebase.emulator.json` **e** em `public/js/config/firebase.config.js` |
 | página em branco, erro de módulo | aberta via `file://` | sirva por HTTP (`npm run emulators` ou `npm run serve`) |
-| sem a faixa amarela | página aberta por IP de rede (ex.: `192.168…`) seleciona **produção** | use `127.0.0.1` ou `localhost` |
+| faixa "Endereço não reconhecido" | página aberta por IP de rede (ex.: `192.168…`) ou pré-visualização: continua no Emulator (nunca produção), mas o Emulator só responde em `127.0.0.1` | use `127.0.0.1` ou `localhost` na mesma máquina |
+| sem nenhuma faixa | só acontece nos endereços publicados (`PRODUCTION_HOSTNAMES`): é a **produção** | feche a página; para testar use `127.0.0.1` |
 | tradução falha | backend do Render indisponível ou sem internet | não afeta o restante; ver contrato do backend |
 | E2E: "exigem o pacote playwright" | dependências não instaladas | `npm install` e `npx playwright install chromium` |
