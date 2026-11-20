@@ -30,6 +30,7 @@ O transporte do seed foi feito em `fix/emulator-seed-upstream`, com sete `git ch
 - Clones limpos do fork e upstream, `npm ci`, Node `22.22.3`, npm `10.9.8`, Java `21.0.13.1`, Firebase CLI `15.37.0`, RTDB Emulator `4.11.2`, Playwright `1.63.0` e Chromium `153.0.8010.12`.
 - `npm test`, `npm run test:rules`, `npm run test:rules:sim`, `npm run test:e2e`, `npm run test:e2e:emulator`, `npm run rules:check`, `node scripts/verify-static.mjs`, `node scripts/verify-architecture.mjs`, `node --check` e `git diff --check`. Cenários, pré-condições e resultados no [Relatório funcional](../auditorias/CODEX_TESTES_FUNCIONAIS_REAIS.md).
 - `npm run emulators` → `npm run emulators:seed` → `npm run emulators:verify` em processos separados no clone do fork. A auditoria confirmou número de registros diretamente no namespace demo. No upstream original, o seed de Linux gravou três sessões e o script `emulators:verify` estava ausente.
+- Na CI do fork, a instalação de fontes opcionais pelo `--with-deps` atrasou o job simulado. A configuração final instala o Chromium do Playwright e usa as bibliotecas do runner Ubuntu. Os comandos, dados e asserções das duas suítes de browser permanecem os mesmos.
 
 ## VERIFICADO NO CÓDIGO
 

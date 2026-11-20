@@ -72,7 +72,7 @@ jobs:
       - name: Matriz de regras no Firebase Emulator
         run: npm run test:rules
       - name: Chromium do Playwright
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Carga sintética e navegador no Emulator (Hosting, Auth e RTDB)
         run: npm run test:e2e:emulator
 
@@ -114,6 +114,6 @@ jobs:
       - name: Dependências de teste
         run: npm ci --no-audit --no-fund
       - name: Chromium do Playwright
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: E2E (rede bloqueada; banco simulado aplica as regras propostas)
         run: npm run test:e2e
