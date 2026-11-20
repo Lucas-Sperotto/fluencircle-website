@@ -13,7 +13,8 @@
     "emulators": "firebase emulators:start --config firebase.emulator.json --project demo-fluencircle-audit",
     "emulators:seed": "node scripts/emulator/seed.mjs",
     "emulators:verify": "node scripts/emulator/seed.mjs --verify",
-    "serve": "python3 -m http.server 5501 --directory public"
+    "serve": "python3 -m http.server 5501 --directory public",
+    "bench:pages": "firebase emulators:exec --config firebase.emulator.json --project demo-fluencircle-audit --only auth,database \"node scripts/benchmarks/page-performance.mjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "5.0.1",
