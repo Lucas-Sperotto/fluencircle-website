@@ -13,6 +13,8 @@ export function initRoomLobby(uid) {
   let joining = false;
   let sending = false;
   let stopChat;
+  let releaseMembership = null;
+  let leaving = false;
   let requestedId = new URLSearchParams(location.search).get('sala');
 
   function showRoom() {
@@ -32,6 +34,12 @@ export function initRoomLobby(uid) {
   }
 
   function leaveRoom(message) {
+    if (leaving) return;
+    leaving = true;
+    // O botão Sair deve remover o vínculo do RTDB, não apenas esconder a UI.
+    // Evita reentrar enquanto a remoção anterior ainda está pendente.
+    const release = releaseMembership;
+    releaseMembership = null;
     stopChat?.();
     stopChat = null;
     selectedId = null;
@@ -40,16 +48,24 @@ export function initRoomLobby(uid) {
     input.value = '';
     chat.replaceChildren();
     showList(message);
+    if (!release) {
+      leaving = false;
+      return;
+    }
+    void release().catch((error) => {
+      console.error('Falha ao remover vínculo da sala:', error);
+      status.textContent = 'Não foi possível sair completamente da sala. Verifique a conexão.';
+    }).finally(() => { leaving = false; });
   }
 
   async function enterRoom(id) {
-    if (joining || selectedId || !rooms[id]?.online) return;
+    if (joining || leaving || selectedId || !rooms[id]?.online) return;
     joining = true;
     status.textContent = 'Entrando na sala…';
     try {
-      await joinLiveRoom(id, uid);
-      if (!rooms[id]) {
-        showList('A sala foi encerrada.');
+      releaseMembership = await joinLiveRoom(id, uid);
+      if (!rooms[id]?.online) {
+        leaveRoom('A sala foi encerrada.');
         return;
       }
       selectedId = id;
@@ -65,8 +81,10 @@ export function initRoomLobby(uid) {
         }));
         chat.scrollTop = chat.scrollHeight;
       }, () => leaveRoom('O chat desta sala foi desconectado.'));
-    } catch {
-      showList('Falha ao entrar na sala. Tente novamente.');
+    } catch (error) {
+      console.error('Falha ao entrar na sala:', error);
+      if (releaseMembership) leaveRoom('Falha ao entrar na sala. Tente novamente.');
+      else showList('Falha ao entrar na sala. Tente novamente.');
     } finally {
       joining = false;
     }

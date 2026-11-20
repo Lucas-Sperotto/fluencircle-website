@@ -1,4 +1,4 @@
-import { database, ref, set, push, update, onValue, onDisconnect, query, orderByKey, limitToLast } from '../core/firebase.js';
+import { database, ref, set, push, update, remove, onValue, onDisconnect, query, orderByKey, limitToLast } from '../core/firebase.js';
 import { DB_PATHS, dbPath } from './db-paths.js';
 
 const roomRef = (id, ...parts) => ref(database, dbPath(DB_PATHS.liveRooms, id, ...parts));
@@ -60,8 +60,31 @@ export async function openLiveRoom({ id, topic, hostUid }) {
   };
 }
 
-export function joinLiveRoom(id, uid) {
-  return set(ref(database, dbPath(DB_PATHS.liveRoomMembers, id, uid)), true);
+/**
+ * Entrar devolve uma operação de saída que elimina o vínculo no RTDB.
+ * O agendamento onDisconnect impede que uma aba fechada preserve acesso
+ * ao chat. A limpeza é idempotente e só afeta o UID do próprio usuário.
+ */
+export async function joinLiveRoom(id, uid) {
+  const memberRef = ref(database, dbPath(DB_PATHS.liveRoomMembers, id, uid));
+  const disconnect = onDisconnect(memberRef);
+  await disconnect.remove();
+  try {
+    await set(memberRef, true);
+  } catch (error) {
+    await disconnect.cancel().catch(() => {});
+    throw error;
+  }
+  let active = true;
+  return async () => {
+    if (!active) return;
+    active = false;
+    try {
+      await remove(memberRef);
+    } finally {
+      await disconnect.cancel().catch(() => {});
+    }
+  };
 }
 
 export function watchRoomChat(id, onMessages, onError) {
