@@ -76,10 +76,17 @@ const validate = (expression) => ({ '.validate': expression });
 const clockTime = "newData.isString() && newData.val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)";
 
 /** Id de plano (formato dos ids do push()); o mesmo de domain/plans.js. */
-const planIdFormat = 'newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,64}$/)';
+const isPlanId = (node) => `${node}.isString() && ${node}.val().matches(/^[A-Za-z0-9_-]{1,64}$/)`;
 
-/** Plano da conta autenticada (string vazia se não houver). */
-const myPlan = "root.child('users').child(auth.uid).child('planId').val()";
+/** Índices persistidos por domain/plans.js, incluindo a faixa legada 0–99. */
+const planSessionIndexPattern = '(0|[1-9][0-9]{0,5})';
+
+/** Aplica um teste ao plano canônico ou, se o campo não existir, ao identificador legado. */
+const profilePath = "root.child('users').child(auth.uid)";
+const canonicalPlan = `${profilePath}.child('planId')`;
+const legacyPlan = `${profilePath}.child('plan')`;
+const ownPlan = (match) => `((${isPlanId(canonicalPlan)} && ${match(`${canonicalPlan}.val()`)})`
+  + ` || (!${canonicalPlan}.exists() && ${isPlanId(legacyPlan)} && ${match(`${legacyPlan}.val()`) }))`;
 
 // ---------------------------------------------------------------------------
 // Árvore de regras
@@ -107,7 +114,10 @@ export function buildRules() {
           email: validate(email),
           role: validate("newData.val() === 'student' || newData.val() === 'mediator' || newData.val() === 'admin'"),
           // Plano contratado (PR #2). Precisa existir em `plans`; remover = gravar null.
-          planId: validate(`${planIdFormat} && root.child('plans').child(newData.val()).exists()`),
+          planId: validate(`${isPlanId('newData')} && root.child('plans').child(newData.val()).exists()`),
+          // Perfis importados podem manter os campos antigos até a edição em Acessos.
+          plan: validate('data.exists() && newData.val() === data.val()'),
+          planName: validate('data.exists() && newData.val() === data.val()'),
           createdAt: validate(isoTimestamp),
           updatedAt: validate(isoTimestamp),
           ...noOtherFields,
@@ -119,15 +129,17 @@ export function buildRules() {
       plans: {
         '.read': isStaff,
         $planId: {
-          '.read': `(${hasProfile} && ${myPlan} === $planId)`,
+          '.read': `(${hasProfile} && ${ownPlan((plan) => `${plan} === $planId`)})`,
           '.write': isAdmin,
-          '.validate': "newData.hasChildren(['name', 'price', 'sessions']) && $planId.matches(/^[A-Za-z0-9_-]{1,64}$/)",
+          '.validate': "newData.hasChildren(['name', 'price', 'sessions']) && $planId.matches(/^[A-Za-z0-9_-]{1,64}$/)"
+            + " && (!data.child('nextSessionIndex').exists() || (newData.child('nextSessionIndex').exists() && newData.child('nextSessionIndex').val() >= data.child('nextSessionIndex').val()))",
           name: validate(text(80, 1)),
           description: validate(text(300)),
           price: validate('newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000'),
+          nextSessionIndex: validate('newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 1000000'),
           sessions: {
             $index: {
-              '.validate': "$index.matches(/^[0-9]{1,2}$/) && newData.hasChildren(['dayOfWeek', 'startTime', 'endTime'])",
+              '.validate': `$index.matches(/^${planSessionIndexPattern}$/) && newData.hasChildren(['dayOfWeek', 'startTime', 'endTime'])`,
               dayOfWeek: validate('newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 6'),
               startTime: validate(clockTime),
               endTime: validate(clockTime),
@@ -149,11 +161,11 @@ export function buildRules() {
         $weekKey: {
           '.validate': '$weekKey.matches(/^[0-9]{4}-W[0-9]{2}$/)',
           $slotKey: {
-            '.read': `(${hasProfile} && root.child('users').child(auth.uid).child('planId').isString() && $slotKey.beginsWith(${myPlan} + '_')`
-              // o resto da chave tem de ser só "<dia>_<i>": impede que o plano "x" leia o plano "x_y"
-              + ` && $slotKey.replace(${myPlan} + '_', '').matches(/^[0-6]_[0-9]{1,2}$/))`,
+            // o resto da chave tem de ser só "<dia>_<i>": impede que o plano "x" leia o plano "x_y"
+            '.read': `(${hasProfile} && ${ownPlan((plan) => `$slotKey.beginsWith(${plan} + '_')`
+              + ` && $slotKey.replace(${plan} + '_', '').matches(/^[0-6]_${planSessionIndexPattern}$/)`)})`,
             '.write': isStaff,
-            '.validate': "newData.hasChildren(['topicTitle', 'updatedAt']) && $slotKey.matches(/^[A-Za-z0-9_-]+_[0-6]_[0-9]{1,2}$/)",
+            '.validate': `newData.hasChildren(['topicTitle', 'updatedAt']) && $slotKey.matches(/^[A-Za-z0-9_-]+_[0-6]_${planSessionIndexPattern}$/)`,
             topicId: validate(text(128)),
             topicTitle: validate(text(200, 1)),
             questions: {

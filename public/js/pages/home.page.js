@@ -9,7 +9,7 @@
 import { initProtectedPage } from './shared/page-setup.js';
 import { getUserProfile } from '../services/users.service.js';
 import { getPlan, getPlanWeekSchedule } from '../services/plans.service.js';
-import { buildWeekAgenda, isoWeekKey, weekRangeLabel, isValidPlanId } from '../domain/plans.js';
+import { buildWeekAgenda, isoWeekKey, weekRangeLabel, profilePlanId } from '../domain/plans.js';
 import { h, byId, replaceContent } from '../ui/dom.js';
 import { renderWeekSlotCard } from '../ui/week-slot-card.js';
 
@@ -28,8 +28,8 @@ function message(text) {
  */
 async function loadStudentWeek(uid) {
   const profile = await getUserProfile(uid);
-  const planId = profile?.planId;
-  if (!isValidPlanId(planId)) return;
+  const planId = profilePlanId(profile);
+  if (!planId) return;
 
   section.classList.remove('hidden');
   const today = new Date();
