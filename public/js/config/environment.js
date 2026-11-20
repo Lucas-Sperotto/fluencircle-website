@@ -49,6 +49,7 @@ export const ENVIRONMENT_SETTINGS = Object.freeze({
     emulators: null,
     badge: null,
     publicTranslatorSavesFlashcards: true,
+    liveRooms: false,
   }),
   [ENVIRONMENTS.EMULATOR]: Object.freeze({
     name: ENVIRONMENTS.EMULATOR,
@@ -56,6 +57,7 @@ export const ENVIRONMENT_SETTINGS = Object.freeze({
     emulators: EMULATOR_HOSTS,
     badge: `Ambiente de teste local — Firebase Emulator (${EMULATOR_PROJECT_ID}). Dados sintéticos; nada aqui chega à produção.`,
     publicTranslatorSavesFlashcards: false,
+    liveRooms: true,
   }),
 });
 

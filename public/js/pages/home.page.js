@@ -12,6 +12,8 @@ import { getPlan, getPlanWeekSchedule } from '../services/plans.service.js';
 import { buildWeekAgenda, isoWeekKey, weekRangeLabel, profilePlanId } from '../domain/plans.js';
 import { h, byId, replaceContent } from '../ui/dom.js';
 import { renderWeekSlotCard } from '../ui/week-slot-card.js';
+import { currentEnvironment } from '../config/environment.js';
+import { initRoomLobby } from './room-lobby.js';
 
 const section = byId('student-week');
 const subtitle = byId('student-week-subtitle');
@@ -52,6 +54,7 @@ async function loadStudentWeek(uid) {
 
 const session = await initProtectedPage();
 if (session) {
+  if (currentEnvironment.liveRooms) initRoomLobby(session.user.uid);
   try {
     await loadStudentWeek(session.user.uid);
   } catch (error) {

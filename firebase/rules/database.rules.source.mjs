@@ -88,6 +88,12 @@ const legacyPlan = `${profilePath}.child('plan')`;
 const ownPlan = (match) => `((${isPlanId(canonicalPlan)} && ${match(`${canonicalPlan}.val()`)})`
   + ` || (!${canonicalPlan}.exists() && ${isPlanId(legacyPlan)} && ${match(`${legacyPlan}.val()`) }))`;
 
+const activeAccount = `(${hasProfile} && !root.child('deleted_users').child(auth.uid).exists())`;
+const room = "root.child('live_rooms').child($roomId)";
+const roomHost = `(${isStaff} && ${room}.child('hostUid').val() === auth.uid)`;
+const roomOnline = `${room}.child('online').val() === true`;
+const roomMember = `(${roomHost} || root.child('live_room_members').child($roomId).child(auth.uid).val() === true)`;
+
 // ---------------------------------------------------------------------------
 // Árvore de regras
 // ---------------------------------------------------------------------------
@@ -273,6 +279,47 @@ export function buildRules() {
           $presenterId: validate("newData.val() === true && $presenterId === newData.parent().parent().child('presenterId').val()"),
         },
         ...noOtherFields,
+      },
+
+      // Círculos da demonstração. O catálogo autenticado contém apenas tema,
+      // UID do anfitrião e slide atual. Conversa e entradas ficam separadas.
+      live_rooms: {
+        '.read': activeAccount,
+        $roomId: {
+          '.write': `(${activeAccount} && ${isStaff} && (${roomHost} || (!data.exists() && newData.exists()`
+            + " && root.child('meeting_sessions').child($roomId).child('mediatorEmail').val() === auth.token.email"
+            + " && root.child('meeting_sessions').child($roomId).exists())))",
+          '.validate': "newData.hasChildren(['hostUid', 'topic', 'slide'])",
+          hostUid: validate("newData.val() === auth.uid"),
+          topic: validate("newData.val() === root.child('meeting_sessions').child($roomId).child('topic').val()"),
+          slide: validate(text(500, 1)),
+          online: validate('newData.val() === true'),
+          ...noOtherFields,
+        },
+      },
+
+      live_room_members: {
+        $roomId: {
+          '.write': `(${activeAccount} && ${roomHost} && !newData.exists())`,
+          $uid: {
+            '.write': `(${activeAccount} && ${isSelf('$uid')} && ${roomOnline} && newData.val() === true)`,
+            '.validate': 'newData.val() === true',
+          },
+        },
+      },
+
+      live_room_chat: {
+        $roomId: {
+          '.read': `(${activeAccount} && ${room}.exists() && ${roomMember})`,
+          '.write': `(${activeAccount} && ${roomHost} && !newData.exists())`,
+          $messageId: {
+            '.write': `(${activeAccount} && ${roomOnline} && ${roomMember} && !data.exists() && newData.exists())`,
+            '.validate': "newData.hasChildren(['senderUid', 'text'])",
+            senderUid: validate('newData.val() === auth.uid'),
+            text: validate(text(500, 1)),
+            ...noOtherFields,
+          },
+        },
       },
 
       // Flashcards por sessão. Visitante NÃO grava direto (Issue #5): a gravação
