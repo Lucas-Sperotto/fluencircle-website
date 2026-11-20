@@ -111,8 +111,8 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 **Engenharia:**
 - [`docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md`](docs/engenharia/REQUISITOS_E_CASOS_DE_USO.md) — requisitos, casos de uso e rastreabilidade
 - [`docs/engenharia/MATRIZ_DE_ACESSO.md`](docs/engenharia/MATRIZ_DE_ACESSO.md) — quem acessa o quê (interface e dados), com testes
-- ADRs: [001 arquitetura](docs/engenharia/ADR-001-ARQUITETURA.md) · [002 ambientes e regras](docs/engenharia/ADR-002-AMBIENTES-E-REGRAS.md) · [003 sessão ativa](docs/engenharia/ADR-003-SESSAO-ATIVA.md) · [004 privacidade](docs/engenharia/ADR-004-PRIVACIDADE-E-LEITURA.md) · [005 planos e agenda](docs/engenharia/ADR-005-PLANOS-E-AGENDA.md)
-- [`docs/diagramas/DIAGRAMAS.md`](docs/diagramas/DIAGRAMAS.md) — 14 diagramas Mermaid (AS-IS e TO-BE)
+- ADRs: [001 arquitetura](docs/engenharia/ADR-001-ARQUITETURA.md) · [002 ambientes e regras](docs/engenharia/ADR-002-AMBIENTES-E-REGRAS.md) · [003 sessão ativa](docs/engenharia/ADR-003-SESSAO-ATIVA.md) · [004 privacidade](docs/engenharia/ADR-004-PRIVACIDADE-E-LEITURA.md) · [005 planos e agenda](docs/engenharia/ADR-005-PLANOS-E-AGENDA.md) · [006 artefatos gerados](docs/engenharia/ADR-006-ARTEFATOS-GERADOS.md)
+- [`docs/diagramas/DIAGRAMAS.md`](docs/diagramas/DIAGRAMAS.md) — 14 vistas exigidas + complementares em Mermaid (AS-IS e TO-BE, validadas)
 - [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — camadas, ciclo das páginas, modelo de dados, CSS
 - [`docs/firebase/LEIA-ME.md`](docs/firebase/LEIA-ME.md) — regras, Emulator e hosting
 - [`docs/backend/CONTRATO_BACKEND.md`](docs/backend/CONTRATO_BACKEND.md) — backend controlado proposto (bloqueado) e modelo de ameaças
@@ -122,6 +122,13 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 - [`docs/operacao/SEGURANCA_E_DEPLOY.md`](docs/operacao/SEGURANCA_E_DEPLOY.md) — ambientes, segredos, gates e decisão
 - [`docs/operacao/BACKUP_E_ROLLBACK.md`](docs/operacao/BACKUP_E_ROLLBACK.md) — backup, restauração e rollback
 - [`docs/operacao/DEPENDENCIAS.md`](docs/operacao/DEPENDENCIAS.md) — dependências, versões e licenças
+
+**Auditoria técnica de 20/11/2026 (Claude, Issue #41):**
+- [`CLAUDE_AUDITORIA_SEGURANCA.md`](docs/auditorias/CLAUDE_AUDITORIA_SEGURANCA.md) — modelo de ameaças, 16 achados com evidência e estado
+- [`CLAUDE_AUDITORIA_ARQUITETURAL.md`](docs/auditorias/CLAUDE_AUDITORIA_ARQUITETURAL.md) — camadas, contratos, escala e a decisão sobre frameworks
+- [`CLAUDE_AUDITORIA_DESEMPENHO.md`](docs/auditorias/CLAUDE_AUDITORIA_DESEMPENHO.md) — linha de base e resultados **medidos** (evidências em `docs/auditorias/evidencias/desempenho/`)
+- [`CLAUDE_COMPATIBILIDADE_HISTORICA.md`](docs/auditorias/CLAUDE_COMPATIBILIDADE_HISTORICA.md) — inventário independente × versões originais do aluno e × matriz do Codex
+- [`CLAUDE_IMPLEMENTATION_LOG.md`](docs/processo/CLAUDE_IMPLEMENTATION_LOG.md) — commits, comandos executados, coordenação com o Codex e limites
 
 **Auditoria e processo (histórico):**
 - [`docs/auditorias/CLAUDE_HANDOFF_FINAL.md`](docs/auditorias/CLAUDE_HANDOFF_FINAL.md) — entrega **histórica** de Claude, anterior aos merges e reexecuções da CI
