@@ -19,9 +19,11 @@ Feito com HTML, CSS e JavaScript puros (módulos ES), **sem etapa de build**, so
 
 ## Como rodar localmente (sempre isolado da produção)
 
-Os módulos ES não funcionam abrindo o arquivo direto (`file://`): sirva por HTTP. **Em `localhost`/`127.0.0.1` o site
-usa sempre o Firebase Emulator** com o projeto fictício `demo-fluencircle-audit` e mostra um selo amarelo no rodapé
-(`public/js/config/environment.js`). Não há como apontar a máquina local para a produção sem alterar código.
+Os módulos ES não funcionam abrindo o arquivo direto (`file://`): sirva por HTTP. **Só os endereços publicados**
+(`PRODUCTION_HOSTNAMES` em `public/js/config/firebase.config.js`) usam a produção; **qualquer outro** — `localhost`,
+`127.0.0.1`, `0.0.0.0`, IP da rede, pré-visualização do Hosting — usa o Firebase Emulator com o projeto fictício
+`demo-fluencircle-audit` e mostra um selo no rodapé (`public/js/config/environment.js`, ADR-002). Não há como apontar
+a máquina local para a produção sem alterar código.
 
 ```bash
 npm ci                     # Node 20+ e Java 21+ (o Emulator do firebase-tools 15 exige Java 21)
