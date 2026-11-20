@@ -106,6 +106,12 @@ Use uma janela normal e uma **anônima** (contas diferentes ao mesmo tempo).
    (`tests/rules/privacidade.rules.test.mjs`) e no E2E que lista cada caminho lido (`tests/e2e/privacidade.e2e.test.mjs`).
 10. **Encerrar.** *Encerrar* na sessão. Pare o Emulator com `Ctrl+C` (os dados somem; rode o seed de novo quando quiser).
 
+Para demonstrar duas salas, mantenha Carla na primeira apresentação. No tema do Diego, desmarque **Publicar no
+tradutor público** antes de clicar em **Iniciar**. Em outro contexto do navegador, entre como aluna e abra um dos
+**Círculos ao vivo** na home. As mudanças de slide do anfitrião aparecem na sala escolhida. Use **Abrir sala e chat**
+na apresentação para acompanhar a conversa em outra aba. A presença usada pelos flashcards é registrada pelo
+mediador em **Participantes**. Para voz, os encontros da agenda podem incluir um link HTTPS de chamada.
+
 ## 6. Testes
 
 | Comando | O que prova | Precisa de |
@@ -114,6 +120,7 @@ Use uma janela normal e uma **anônima** (contas diferentes ao mesmo tempo).
 | `npm run test:rules` | **matriz de acesso no Firebase Emulator** (prova oficial das regras) | `npm ci` + Java 21 |
 | `npm run test:rules:sim` | a mesma matriz no simulador local (pré-verificação rápida, **não é o Firebase**) | só Node |
 | `npm run test:e2e` | fluxos pela interface, perfis, concorrência, privacidade e acessibilidade básica, com Firebase **simulado** | `npm install` + `npx playwright install chromium` |
+| `npm run test:e2e:emulator` | Chromium com Auth, RTDB e Hosting do Firebase Emulator, incluindo salas e chat | `npm ci`, Java 21+, Chromium e portas locais livres |
 | `npm run rules:check` | o JSON das regras corresponde à fonte comentada | só Node |
 | `node scripts/verify-architecture.mjs` | camadas respeitadas e nenhum `innerHTML` com dados | só Node |
 
@@ -141,7 +148,7 @@ Em ordem sugerida (detalhes em [`LIMITACOES_E_PENDENCIAS.md`](LIMITACOES_E_PENDE
 
 1. Confirmar que a CI continua verde após cada mudança; o job `rules-emulator` e o `package-lock.json` **já existem** na `main`. Usar `npm ci` e manter o lockfile atualizado quando dependências forem alteradas.
 2. Backend controlado do tradutor (contrato em `docs/backend/CONTRATO_BACKEND.md`) e criação de contas pelo Admin SDK.
-3. Salas por código/QR para várias sessões simultâneas (plano no `ADR-003`).
+3. Validar os círculos autenticados em staging e decidir a evolução do tradutor público para várias salas por código/QR (ADR-003).
 4. Projeto de staging, migração de privacidade em staging e publicação controlada (checklist).
 5. Acessibilidade completa (axe-core, contraste, leitor de tela) e E2E contra o Emulator com o SDK real.
 6. Avaliar a arquitetura B (Vite) só depois disso (`ADR-001`).

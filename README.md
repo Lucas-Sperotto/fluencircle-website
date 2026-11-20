@@ -9,12 +9,13 @@ Feito com HTML, CSS e JavaScript puros (módulos ES), **sem etapa de build**, so
 | Página | Quem usa | O que faz |
 | --- | --- | --- |
 | `auth.html` | todos | login |
-| `index.html` | logados | atalhos conforme o papel |
+| `index.html` | logados | atalhos por papel, agenda do plano e círculos ao vivo na demonstração local |
 | `flash-cards.html` | logados | decks por sessão e modo de estudo com revisão espaçada |
 | `presentation.html` | mediador, admin | sessão ao vivo: slides, presença, tradutor e flashcards |
 | `set-meeting.html` | mediador, admin | temas e perguntas de apoio |
 | `manage-meetings.html` | mediador, admin | histórico de sessões e edição dos flashcards |
 | `admin.html` | admin | contas e papéis |
+| `plans.html` | mediador, admin | agenda semanal e catálogo de planos, editável por admin |
 | `circle-translator.html` | público, sem login | tradutor das sessões presenciais; salvamento público direto ainda depende de regras/backend e não é liberado no demo |
 
 ## Como rodar localmente (sempre isolado da produção)
@@ -45,6 +46,7 @@ npm test                          # unitários (domain/, serviços puros, config
 npm run test:rules                # regras RTDB no Firebase Emulator (regras no Emulator oficial; precisa de npm ci + Java 21)
 npm run test:rules:sim            # mesma matriz no simulador local (pré-verificação offline; não é o Emulator)
 npm run test:e2e                  # E2E e acessibilidade básica (Playwright; Firebase simulado com as regras propostas)
+npm run test:e2e:emulator         # Chromium com Hosting, Auth e RTDB reais no projeto demo; inicia e carrega os emuladores
 npm run rules:check               # JSON das regras em sincronia com a fonte comentada
 node scripts/verify-static.mjs    # arquivos locais e JSON de configuração
 node scripts/verify-architecture.mjs  # camadas e sinks HTML proibidos
@@ -53,7 +55,7 @@ node scripts/verify-architecture.mjs  # camadas e sinks HTML proibidos
 ## Estrutura
 
 ```
-public/                    site (sem build): 8 páginas, assets, css/ e js/ em camadas
+public/                    site (sem build): 9 páginas, assets, css/ e js/ em camadas
 ├── js/config/             ambiente (Emulator × produção), Firebase, backend e limites
 ├── js/core/               único ponto do SDK Firebase (CDN), papéis, navegação
 ├── js/domain/             regras puras: SRS, posse da sessão ativa, índice do aluno, erros
@@ -66,6 +68,7 @@ scripts/                   verificações, gerador de regras, carga do Emulator,
 tests/unit/                testes puros (node --test)
 tests/rules/               matriz de acesso (Emulator ou simulador)
 tests/e2e/                 Playwright com Firebase simulado + acessibilidade básica
+tests/e2e-emulator/        Playwright com Auth, RTDB e Hosting do Firebase Emulator
 tests/fixtures/            dados sintéticos compartilhados
 docs/                      engenharia, entrega ao aluno, operação, auditorias e processo
 ```
@@ -119,6 +122,10 @@ O navegador não é barreira de segurança: esconder botões por papel é só co
 - [`docs/operacao/DEPENDENCIAS.md`](docs/operacao/DEPENDENCIAS.md) — dependências, versões e licenças
 
 **Auditoria e processo (histórico):**
+- [`docs/auditorias/CODEX_MATRIZ_COMPATIBILIDADE_HISTORICA.md`](docs/auditorias/CODEX_MATRIZ_COMPATIBILIDADE_HISTORICA.md) — comparação das branches originais e recuperações
+- [`docs/auditorias/CODEX_TESTES_FUNCIONAIS_REAIS.md`](docs/auditorias/CODEX_TESTES_FUNCIONAIS_REAIS.md) — execução em clone limpo e navegador com Emulator
+- [`docs/auditorias/CODEX_CORRECOES_E_REGRESSOES.md`](docs/auditorias/CODEX_CORRECOES_E_REGRESSOES.md) — correções, decisões de compatibilidade e regressões
+- [`docs/processo/CODEX_IMPLEMENTATION_LOG.md`](docs/processo/CODEX_IMPLEMENTATION_LOG.md) — commits, autoria, comandos e limites da auditoria
 - [`docs/auditorias/CLAUDE_HANDOFF_FINAL.md`](docs/auditorias/CLAUDE_HANDOFF_FINAL.md) — entrega **histórica** de Claude, anterior aos merges e reexecuções da CI
 - [`docs/auditorias/CHATGPT_ACEITE_ACADEMICO_2026-11-19.md`](docs/auditorias/CHATGPT_ACEITE_ACADEMICO_2026-11-19.md) — resultado independente após os PRs #29–#34 e dependências travadas
 - [`docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md`](docs/auditorias/AUDITORIA_INDEPENDENTE_2026-11-18.md), [`GEMINI_AUDITORIA.md`](docs/auditorias/GEMINI_AUDITORIA.md), [`CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md`](docs/auditorias/CHATGPT_REVISAO_FINAL_GEMINI_2026-11-19.md)
