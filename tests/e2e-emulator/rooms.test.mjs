@@ -64,6 +64,24 @@ test('círculos autenticados simultâneos sincronizam slide e chat sem trocar o 
   await hostChat.locator('#room-chat', { hasText: message }).waitFor();
   assert.equal(await bruno.page.locator('#room-chat li').count(), 0);
 
+  // Regressão: "Sair da sala" remove a inscrição no RTDB; voltar deve
+  // exigir nova entrada antes de conceder leitura do chat.
+  const profiles = await readDatabase('users');
+  const anaUid = Object.entries(profiles).find(([, profile]) => profile.email === ACTORS.studentA.email)?.[0];
+  assert.ok(anaUid, 'UID da aluna sintética não encontrado');
+  assert.equal(await readDatabase(`live_room_members/${published.sessionId}/${anaUid}`), true);
+  await ana.page.getByRole('button', { name: 'Sair da sala' }).click();
+  await ana.page.getByRole('button', { name: `Entrar em ${technology}` }).waitFor();
+  let membership = true;
+  for (let attempt = 0; attempt < 25; attempt++) {
+    membership = await readDatabase(`live_room_members/${published.sessionId}/${anaUid}`);
+    if (membership === null) break;
+    await new Promise((resolve) => setTimeout(resolve, 80));
+  }
+  assert.equal(membership, null, 'o botão Sair deve remover o vínculo da sala');
+  await ana.page.getByRole('button', { name: `Entrar em ${technology}` }).click();
+  await ana.page.locator('#room-chat', { hasText: message }).waitFor();
+
   await diego.context.loseDatabaseConnection();
   await bruno.page.locator('#room-status', { hasText: 'Aguardando o mediador reconectar.' }).waitFor();
   assert.equal(await bruno.page.getByRole('button', { name: 'Enviar' }).isDisabled(), true);
